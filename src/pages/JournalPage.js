@@ -22,18 +22,18 @@ const sampleEntries = [
     id: 'entry2',
     title: 'Question on Purpose',
     timestamp: '2025-02-24T16:45:00.000Z',
-    content: 'I've been thinking about Aristotle's concept of telos (purpose) lately. How do I discover my purpose in life? Is it something innate that I need to uncover, or something I create through my choices and actions?',
+    content: 'I have been thinking about Aristotles concept of telos (purpose) lately. How do I discover my purpose in life? Is it something innate that I need to uncover, or something I create through my choices and actions?',
     type: 'philosophical',
     philosopher: 'Aristotle',
     aiInsight: 'Purpose is found at the intersection of your talents, passions, and what the world needs. Eudaimonia (flourishing) comes from fulfilling your function excellently.',
     tags: ['Purpose', 'Aristotle', 'Life Questions'],
-    reflection: 'After reflecting on this, I realize that my purpose isn't something I'll discover in a single moment of clarity, but something that emerges through continual action and reflection.'
+    reflection: 'After reflecting on this, I realize that my purpose isnt something I will discover in a single moment of clarity, but something that emerges through continual action and reflection.'
   },
   {
     id: 'entry3',
-    title: 'Oracle's Wisdom',
+    title: 'Oracles Wisdom',
     timestamp: '2025-02-23T10:15:00.000Z',
-    content: 'The Oracle challenged me to examine my assumptions about success today. I realize I've been measuring success by external validation rather than internal fulfillment.',
+    content: 'The Oracle challenged me to examine my assumptions about success today. I realize I have been measuring success by external validation rather than internal fulfillment.',
     type: 'oracle',
     aiInsight: 'Look within for the measure of your worth, not to the opinions of others. True success is harmony between your actions and your values.',
     tags: ['Success', 'Self-worth', 'Validation']
