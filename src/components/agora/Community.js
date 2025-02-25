@@ -32,7 +32,7 @@ const sampleSymposiums = [
   {
     id: 'symposium4',
     title: 'The Ethics of AI through Aristotelian Lens',
-    description: 'Examining modern AI ethics questions using Aristotle's virtue ethics framework.',
+    description: 'Examining modern AI ethics questions using Aristotles virtue ethics framework.',
     members: 19,
     topics: ['Ethics', 'Technology', 'Aristotle'],
     recent: false
