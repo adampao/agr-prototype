@@ -16,15 +16,15 @@ const Footer = () => {
             <Link to="/" className="text-aegeanBlue hover:text-aegeanBlue/80">
               Home
             </Link>
-            <a href="#" className="text-aegeanBlue hover:text-aegeanBlue/80">
+            <Link to="/about" className="text-aegeanBlue hover:text-aegeanBlue/80">
               About
-            </a>
-            <a href="#" className="text-aegeanBlue hover:text-aegeanBlue/80">
+            </Link>
+            <Link to="/privacy" className="text-aegeanBlue hover:text-aegeanBlue/80">
               Privacy
-            </a>
-            <a href="#" className="text-aegeanBlue hover:text-aegeanBlue/80">
+            </Link>
+            <Link to="/terms" className="text-aegeanBlue hover:text-aegeanBlue/80">
               Terms
-            </a>
+            </Link>
           </div>
           <p className="mt-4 text-center md:mt-0 md:text-right text-sm text-aegeanBlue/70">
             &copy; {new Date().getFullYear()} Ancient Greece Revisited. All rights reserved.
