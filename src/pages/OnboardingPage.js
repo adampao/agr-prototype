@@ -59,9 +59,9 @@ const OnboardingPage = () => {
             &copy; {new Date().getFullYear()} Ancient Greece Revisited
           </div>
           <div className="text-sm">
-            <a href="#" className="text-aegeanBlue hover:text-aegeanBlue/80">Privacy Policy</a>
+          <Link to="/privacy" className="text-aegeanBlue hover:text-aegeanBlue/80">Privacy Policy</Link>
             <span className="mx-2 text-aegeanBlue/40">|</span>
-            <a href="#" className="text-aegeanBlue hover:text-aegeanBlue/80">Terms of Service</a>
+            <Link to="/terms" className="text-aegeanBlue hover:text-aegeanBlue/80">Terms of Service</Link>
           </div>
         </div>
       </footer>
