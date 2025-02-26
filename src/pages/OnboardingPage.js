@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import Welcome from '../components/onboarding/Welcome';
 import OracleQuestion from '../components/onboarding/OracleQuestion';
 import PhilosophicalCompass from '../components/onboarding/PhilosophicalCompass';
