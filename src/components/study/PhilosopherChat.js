@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Button from '../common/Button';
+import { sendMessageToPhilosopher } from '../../services/claudeApi';
 
 const philosophers = [
   { 
@@ -111,6 +112,8 @@ const PhilosopherChat = () => {
   const [inputValue, setInputValue] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [hoveredPhilosopher, setHoveredPhilosopher] = useState(null);
+  const [useClaudeApi, setUseClaudeApi] = useState(true); // Toggle between sample responses and Claude API
+  const [apiError, setApiError] = useState(null);
   const messagesEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
   
@@ -122,22 +125,64 @@ const PhilosopherChat = () => {
     scrollToBottom();
   }, [messages]);
   
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (inputValue.trim() && selectedPhilosopher) {
       // Add user message
-      setMessages([...messages, { sender: 'user', text: inputValue.trim() }]);
+      const userMessage = { sender: 'user', text: inputValue.trim() };
+      setMessages(prevMessages => [...prevMessages, userMessage]);
       setInputValue('');
       setIsProcessing(true);
+      setApiError(null);
       
-      // Simulate AI response with a delay
-      setTimeout(() => {
-        const responses = sampleResponses[selectedPhilosopher.id];
-        const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+      try {
+        if (useClaudeApi) {
+          // Format previous messages for Claude API
+          const previousMessages = messages.map(msg => ({
+            role: msg.sender === 'user' ? 'user' : 'assistant',
+            content: msg.text
+          }));
+          
+          // Send to Claude API via our Netlify function
+          const response = await sendMessageToPhilosopher(
+            selectedPhilosopher.id, 
+            inputValue.trim(),
+            previousMessages
+          );
+          
+          // Add philosopher message from Claude
+          setMessages(prevMessages => [
+            ...prevMessages, 
+            { 
+              sender: 'philosopher', 
+              philosopherId: selectedPhilosopher.id, 
+              text: response.response 
+            }
+          ]);
+        } else {
+          // Fallback to sample responses with a delay
+          setTimeout(() => {
+            const responses = sampleResponses[selectedPhilosopher.id];
+            const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+            
+            setMessages(prevMessages => [
+              ...prevMessages, 
+              { sender: 'philosopher', philosopherId: selectedPhilosopher.id, text: randomResponse }
+            ]);
+          }, 1500);
+        }
+      } catch (error) {
+        console.error('Error getting philosopher response:', error);
+        setApiError('There was an error communicating with the philosopher. Please try again.');
         
+        // Add error message in chat
         setMessages(prevMessages => [
           ...prevMessages, 
-          { sender: 'philosopher', philosopherId: selectedPhilosopher.id, text: randomResponse }
+          { 
+            sender: 'system', 
+            text: "I apologize, but I'm having trouble connecting with the philosophical realm at the moment. Please try again shortly." 
+          }
         ]);
+      } finally {
         setIsProcessing(false);
         
         // Focus back on input after response using a small delay to ensure the DOM is ready
@@ -147,7 +192,7 @@ const PhilosopherChat = () => {
             inputElement.focus();
           }
         }, 50);
-      }, 1500);
+      }
     }
   };
   
@@ -217,9 +262,20 @@ const PhilosopherChat = () => {
                   className="w-full h-full object-cover"
                 />
               </div>
-              <div>
+              <div className="flex-grow">
                 <h3 className="font-medium">{selectedPhilosopher.name}</h3>
                 <p className="text-xs">{selectedPhilosopher.specialty}</p>
+              </div>
+              <div className="flex items-center space-x-2">
+                <button 
+                  onClick={() => setUseClaudeApi(!useClaudeApi)}
+                  className={`text-xs p-1 rounded-md transition-colors ${
+                    useClaudeApi ? 'bg-oracleGreen/20 text-oracleGreen' : 'bg-aegeanBlue/20 text-aegeanBlue'
+                  }`}
+                  title={useClaudeApi ? "Using Claude AI" : "Using sample responses"}
+                >
+                  {useClaudeApi ? "AI Mode" : "Demo Mode"}
+                </button>
               </div>
             </div>
           </div>
@@ -254,7 +310,9 @@ const PhilosopherChat = () => {
                       className={`max-w-[80%] rounded-lg p-3 ${
                         message.sender === 'user' 
                           ? 'bg-aegeanBlue text-white rounded-tr-none' 
-                          : `${selectedPhilosopher.accent} rounded-tl-none`
+                          : message.sender === 'system'
+                            ? 'bg-terracotta/80 text-white rounded-tl-none'
+                            : `${selectedPhilosopher.accent} rounded-tl-none`
                       }`}
                     >
                       {message.text.split('\n').map((text, i) => (
