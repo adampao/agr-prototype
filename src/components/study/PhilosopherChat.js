@@ -8,7 +8,7 @@ const philosophers = [
     name: 'Socrates', 
     specialty: 'Ethics & Questioning',
     description: 'The wisest is he who knows he does not know. I will help you question your assumptions and beliefs.',
-    imageSrc: 'https://via.placeholder.com/100',
+    imageSrc: '/images/philosophers/socrates.jpg',
     accent: 'bg-philosophicalPurple/20 border-philosophicalPurple/30 text-philosophicalPurple',
   },
   { 
@@ -16,15 +16,39 @@ const philosophers = [
     name: 'Aristotle', 
     specialty: 'Practical Wisdom',
     description: 'Virtue lies in the golden mean. I will help you find balance and practical wisdom in your life.',
-    imageSrc: 'https://via.placeholder.com/100',
+    imageSrc: '/images/philosophers/aristotle.jpg',
     accent: 'bg-aegeanBlue/20 border-aegeanBlue/30 text-aegeanBlue',
   },
   { 
-    id: 'oracle', 
-    name: 'Oracle of Delphi', 
-    specialty: 'Guidance & Insight',
-    description: 'Know thyself. I will provide cryptic yet profound insights to your deepest questions.',
-    imageSrc: 'https://via.placeholder.com/100',
+    id: 'plato', 
+    name: 'Plato', 
+    specialty: 'Forms & Ideals',
+    description: 'Reality is found beyond appearances. I will guide you to understand the eternal forms behind the material world.',
+    imageSrc: '/images/philosophers/plato.jpg',
+    accent: 'bg-oliveGold/20 border-oliveGold/30 text-oliveGold/90',
+  },
+  { 
+    id: 'heraclitus', 
+    name: 'Heraclitus', 
+    specialty: 'Flux & Change',
+    description: 'Everything flows, nothing stays. I will help you understand the constant change that pervades all existence.',
+    imageSrc: '/images/philosophers/heraclitus.jpg',
+    accent: 'bg-terracotta/20 border-terracotta/30 text-terracotta',
+  },
+  { 
+    id: 'pythagoras', 
+    name: 'Pythagoras', 
+    specialty: 'Mathematics & Harmony',
+    description: 'All things are numbers. I will reveal how mathematical principles underlie the harmony of the cosmos.',
+    imageSrc: '/images/philosophers/pythagoras.jpg',
+    accent: 'bg-philosophicalPurple/20 border-philosophicalPurple/30 text-philosophicalPurple',
+  },
+  { 
+    id: 'xenophon', 
+    name: 'Xenophon', 
+    specialty: 'Leadership & History',
+    description: 'True leadership comes from character. I will share practical wisdom from historical examples and lived experience.',
+    imageSrc: '/images/philosophers/xenophon.jpg',
     accent: 'bg-oracleGreen/20 border-oracleGreen/30 text-oracleGreen',
   },
 ];
@@ -45,12 +69,33 @@ const sampleResponses = {
     "Every virtue exists as a mean between two extremes. Where does your approach fall?",
     "A good life consists of good activity in accordance with virtue. Let's consider how this applies here."
   ],
-  oracle: [
-    "The path you seek lies within, not without.",
-    "When two rivers meet, a new course is formed. Consider where your influences are leading you.",
-    "The owl flies at dusk, between light and dark. Your answer exists in the space between opposites.",
-    "Know first who you are, then what you must become.",
-    "The mountain appears tallest to those in the valley. Perspective shapes all truths."
+  plato: [
+    "Consider the eternal Form behind what we observe in the material world.",
+    "The physical world is but a shadow of true reality. What is the ideal form of what you seek?",
+    "Just as the sun illuminates the visible world, the Form of the Good gives truth to objects of knowledge.",
+    "The soul recollects knowledge it possessed before birth. Let us draw it out through dialectic.",
+    "The cave of ignorance can only be escaped by turning toward the light of knowledge."
+  ],
+  heraclitus: [
+    "You cannot step into the same river twice, for it is not the same river and you are not the same person.",
+    "Opposition brings concord. Out of discord comes the fairest harmony.",
+    "The only constant in life is change itself. How can you embrace this flux?",
+    "Hidden harmony is better than obvious harmony. Look for the unity beneath the conflict.",
+    "The way up and the way down are one and the same. Apparent opposites are secretly connected."
+  ],
+  pythagoras: [
+    "All is number. The cosmos is structured according to mathematical principles.",
+    "Harmony arises when opposite forces are balanced in proper proportion.",
+    "The soul is immortal and undergoes a series of reincarnations. What has your soul learned?",
+    "True wisdom comes from understanding the numerical patterns that govern all things.",
+    "Silence is the first step toward wisdom. Let us contemplate the mathematical order of the universe."
+  ],
+  xenophon: [
+    "Leaders must first learn to govern themselves before they can govern others.",
+    "History offers practical lessons for those who would lead wisely today.",
+    "Proper education builds character, and character determines fate.",
+    "A leader must set the example by living the values they espouse.",
+    "Experience is the best teacher. Let me share what I've learned through my own journeys."
   ]
 };
 
@@ -98,7 +143,7 @@ const PhilosopherChat = () => {
             <h2 className="text-3xl font-serif font-bold text-aegeanBlue mb-6 text-center">
               Choose Your Philosophical Guide
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-h-[70vh] overflow-y-auto p-2">
               {philosophers.map((philosopher) => (
                 <motion.div
                   key={philosopher.id}
