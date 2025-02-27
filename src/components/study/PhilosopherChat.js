@@ -9,6 +9,7 @@ const philosophers = [
     specialty: 'Ethics & Questioning',
     description: 'The wisest is he who knows he does not know. I will help you question your assumptions and beliefs.',
     imageSrc: '/images/philosophers/socrates.jpg',
+    modernImageSrc: '/images/philosophers/socrates_modern.jpg',
     accent: 'bg-philosophicalPurple/20 border-philosophicalPurple/30 text-philosophicalPurple',
   },
   { 
@@ -17,6 +18,7 @@ const philosophers = [
     specialty: 'Practical Wisdom',
     description: 'Virtue lies in the golden mean. I will help you find balance and practical wisdom in your life.',
     imageSrc: '/images/philosophers/aristotle.jpg',
+    modernImageSrc: '/images/philosophers/aristotle_modern.jpg',
     accent: 'bg-aegeanBlue/20 border-aegeanBlue/30 text-aegeanBlue',
   },
   { 
@@ -25,6 +27,7 @@ const philosophers = [
     specialty: 'Forms & Ideals',
     description: 'Reality is found beyond appearances. I will guide you to understand the eternal forms behind the material world.',
     imageSrc: '/images/philosophers/plato.jpg',
+    modernImageSrc: '/images/philosophers/plato_modern.jpg',
     accent: 'bg-oliveGold/20 border-oliveGold/30 text-oliveGold/90',
   },
   { 
@@ -33,6 +36,7 @@ const philosophers = [
     specialty: 'Flux & Change',
     description: 'Everything flows, nothing stays. I will help you understand the constant change that pervades all existence.',
     imageSrc: '/images/philosophers/heraclitus.jpg',
+    modernImageSrc: '/images/philosophers/heraclitus_modern.jpg',
     accent: 'bg-terracotta/20 border-terracotta/30 text-terracotta',
   },
   { 
@@ -41,6 +45,7 @@ const philosophers = [
     specialty: 'Mathematics & Harmony',
     description: 'All things are numbers. I will reveal how mathematical principles underlie the harmony of the cosmos.',
     imageSrc: '/images/philosophers/pythagoras.jpg',
+    modernImageSrc: '/images/philosophers/pythagoras_modern.jpg',
     accent: 'bg-philosophicalPurple/20 border-philosophicalPurple/30 text-philosophicalPurple',
   },
   { 
@@ -49,6 +54,7 @@ const philosophers = [
     specialty: 'Leadership & History',
     description: 'True leadership comes from character. I will share practical wisdom from historical examples and lived experience.',
     imageSrc: '/images/philosophers/xenophon.jpg',
+    modernImageSrc: '/images/philosophers/xenophon_modern.jpg',
     accent: 'bg-oracleGreen/20 border-oracleGreen/30 text-oracleGreen',
   },
 ];
@@ -104,7 +110,9 @@ const PhilosopherChat = () => {
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [hoveredPhilosopher, setHoveredPhilosopher] = useState(null);
   const messagesEndRef = useRef(null);
+  const messagesContainerRef = useRef(null);
   
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -150,13 +158,15 @@ const PhilosopherChat = () => {
                   whileHover={{ scale: 1.03 }}
                   className={`p-4 rounded-lg border cursor-pointer transition-colors ${philosopher.accent}`}
                   onClick={() => setSelectedPhilosopher(philosopher)}
+                  onMouseEnter={() => setHoveredPhilosopher(philosopher.id)}
+                  onMouseLeave={() => setHoveredPhilosopher(null)}
                 >
                   <div className="flex flex-col items-center text-center">
-                    <div className="w-20 h-20 rounded-full overflow-hidden mb-3">
+                    <div className="w-20 h-20 rounded-full overflow-hidden mb-3 transition-all duration-300">
                       <img 
-                        src={philosopher.imageSrc} 
+                        src={hoveredPhilosopher === philosopher.id ? philosopher.modernImageSrc : philosopher.imageSrc} 
                         alt={philosopher.name} 
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover transition-opacity duration-300"
                       />
                     </div>
                     <h3 className="text-xl font-medium mb-1">{philosopher.name}</h3>
@@ -186,7 +196,7 @@ const PhilosopherChat = () => {
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 rounded-full overflow-hidden">
                 <img 
-                  src={selectedPhilosopher.imageSrc} 
+                  src={selectedPhilosopher.modernImageSrc} 
                   alt={selectedPhilosopher.name} 
                   className="w-full h-full object-cover"
                 />
@@ -199,7 +209,10 @@ const PhilosopherChat = () => {
           </div>
           
           {/* Chat messages */}
-          <div className="flex-grow overflow-y-auto p-4 space-y-4 bg-marbleWhite/50">
+          <div 
+            ref={messagesContainerRef}
+            className="flex-grow overflow-y-auto p-4 space-y-4 bg-marbleWhite/50 h-[calc(100vh-16rem)]"
+          >
             {messages.length === 0 ? (
               <div className="h-full flex items-center justify-center">
                 <div className="text-center text-aegeanBlue/60 max-w-md">
