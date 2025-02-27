@@ -17,8 +17,10 @@ module.exports = {
         'terracotta': '#C24D2C',
       },
       fontFamily: {
-        sans: ['Inter', 'sans-serif'],
-        serif: ['Playfair Display', 'serif'],
+        sans: ['DM Sans', 'system-ui', 'sans-serif'],
+        serif: ['Spectral', 'Georgia', 'serif'],
+        mono: ['JetBrains Mono', 'SFMono-Regular', 'monospace'],
+        display: ['Spectral', 'serif'],
       },
       borderRadius: {
         'xl': '1rem',
@@ -37,11 +39,45 @@ module.exports = {
         DEFAULT: {
           css: {
             color: '#333',
+            fontFamily: 'DM Sans, system-ui, sans-serif',
+            h1: {
+              fontFamily: 'Spectral, serif',
+              fontWeight: '500',
+              letterSpacing: '-0.025em',
+            },
+            h2: {
+              fontFamily: 'Spectral, serif',
+              fontWeight: '500',
+              letterSpacing: '-0.025em',
+            },
+            h3: {
+              fontFamily: 'Spectral, serif',
+              fontWeight: '500',
+            },
+            h4: {
+              fontWeight: '600',
+            },
             a: {
               color: '#1E4B8C',
+              textDecoration: 'none',
+              fontWeight: '500',
               '&:hover': {
                 color: '#C5A572',
+                textDecoration: 'underline',
+                textDecorationThickness: '1px',
+                textUnderlineOffset: '2px',
               },
+            },
+            blockquote: {
+              fontFamily: 'Spectral, serif',
+              fontStyle: 'italic',
+              fontWeight: '300',
+            },
+            code: {
+              fontFamily: 'JetBrains Mono, monospace',
+            },
+            pre: {
+              fontFamily: 'JetBrains Mono, monospace',
             },
           },
         },
