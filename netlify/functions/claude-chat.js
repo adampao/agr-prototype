@@ -46,18 +46,70 @@ exports.handler = async function(event, context) {
       { role: "user", content: prompt }
     ];
     
-    // Make request to Claude API
-    const claudeResponse = await axios.post('https://api.anthropic.com/v1/messages', {
+    // Log for debugging (removing sensitive data)
+    console.log('Making request to Claude API with params:', { 
       model: 'claude-3-haiku-20240307',
-      max_tokens: 1000,
-      messages: messages
-    }, {
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': process.env.ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01'
-      }
+      hasApiKey: !!process.env.ANTHROPIC_API_KEY,
+      messageCount: messages.length
     });
+    
+    // Make request to Claude API
+    // Try the specified model first, but have fallbacks in case that model isn't available
+    let model = 'claude-3-haiku-20240307';
+    
+    // Fallback models in order of preference
+    const fallbackModels = [
+      'claude-3-haiku-20240307',
+      'claude-3-haiku',
+      'claude-3-sonnet-20240229',
+      'claude-3-opus-20240229',
+      'claude-instant-1.2'
+    ];
+    
+    let response = null;
+    let lastError = null;
+    
+    // Try each model until one works
+    for (const currentModel of fallbackModels) {
+      try {
+        console.log(`Attempting to use model: ${currentModel}`);
+        
+        response = await axios.post('https://api.anthropic.com/v1/messages', {
+          model: currentModel,
+          max_tokens: 1000,
+          messages: messages
+        }, {
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': process.env.ANTHROPIC_API_KEY,
+            'anthropic-version': '2023-09-15'
+          },
+          timeout: 30000 // 30 second timeout
+        });
+        
+        // If we get here, the request succeeded
+        console.log(`Successfully used model: ${currentModel}`);
+        break;
+      } catch (err) {
+        console.log(`Failed with model ${currentModel}: ${err.message}`);
+        lastError = err;
+        
+        // If this is anything other than a model availability issue, break the loop
+        if (err.response?.data?.error?.type !== 'model_not_found' && 
+            !err.message.includes('model') && 
+            !err.message.toLowerCase().includes('not found')) {
+          break;
+        }
+      }
+    }
+    
+    // If we still have no response, throw the last error to be caught by the outer try/catch
+    if (!response) {
+      throw lastError || new Error('All model attempts failed');
+    }
+    
+    // Use the successful response
+    const claudeResponse = response;
     
     // Return Claude's response
     return {
@@ -71,11 +123,26 @@ exports.handler = async function(event, context) {
   } catch (error) {
     console.error('Error calling Claude API:', error);
     
+    // Enhanced error logging for debugging
+    const errorDetails = {
+      message: error.message,
+      stack: error.stack,
+      response: error.response ? {
+        status: error.response.status,
+        statusText: error.response.statusText,
+        data: error.response.data
+      } : 'No response data',
+      apiKey: process.env.ANTHROPIC_API_KEY ? 'API key exists (not showing for security)' : 'API key is missing'
+    };
+    
+    console.error('Detailed error:', JSON.stringify(errorDetails, null, 2));
+    
     return {
       statusCode: 500,
       body: JSON.stringify({ 
         error: "Failed to get response from Claude",
-        details: error.message
+        details: error.message,
+        hint: error.response?.data?.error?.message || "Check if your API key is correctly set in Netlify environment variables"
       })
     };
   }

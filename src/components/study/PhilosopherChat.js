@@ -174,12 +174,12 @@ const PhilosopherChat = () => {
         console.error('Error getting philosopher response:', error);
         setApiError('There was an error communicating with the philosopher. Please try again.');
         
-        // Add error message in chat
+        // Add more descriptive error message in chat
         setMessages(prevMessages => [
           ...prevMessages, 
           { 
             sender: 'system', 
-            text: "I apologize, but I'm having trouble connecting with the philosophical realm at the moment. Please try again shortly." 
+            text: `I apologize, but I'm having trouble connecting with the philosophical realm at the moment. ${error.response?.data?.hint || error.message || "Please try again shortly."}` 
           }
         ]);
       } finally {
