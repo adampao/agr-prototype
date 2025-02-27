@@ -30,7 +30,9 @@ const Welcome = ({ onContinue }) => {
       >
         <p className="text-lg text-aegeanBlue/90 mb-12">
           Welcome to a journey of self-discovery and growth, guided by the timeless 
-          wisdom of ancient Greece and enhanced by modern AI technology - created by the AGR team.
+          wisdom of ancient Greece and enhanced by modern AI technology
+          <br />
+          - created by the AGR team.
         </p>
         
         <div className="flex flex-col space-y-4 md:flex-row md:space-y-0 md:space-x-4 justify-center">

@@ -39,7 +39,14 @@ const HomePage = () => {
               <Link to="/onboarding">
                 <Button size="lg">Begin Your Journey</Button>
               </Link>
-              <Button variant="outline" size="lg" onClick={() => document.getElementById('waitlist-modal').showModal()}>Join the Waitlist</Button>
+              <Button variant="outline" size="lg" onClick={() => {
+                if (typeof window.HTMLDialogElement === 'function') {
+                  document.getElementById('waitlist-modal').showModal();
+                } else {
+                  // Fallback for browsers that don't support <dialog>
+                  document.getElementById('waitlist-modal').style.display = 'block';
+                }
+              }}>Join the Waitlist</Button>
             </motion.div>
           </div>
         </div>
@@ -269,51 +276,46 @@ const HomePage = () => {
             Be the first to know when The Oikosystem launches. We'll notify you as soon as it's ready.
           </p>
           
-          <form name="waitlist" method="POST" data-netlify="true" className="space-y-4">
+          <form name="waitlist" method="POST" netlify className="space-y-4">
             <input type="hidden" name="form-name" value="waitlist" />
             
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-aegeanBlue/70 mb-1">
+            <p>
+              <label className="block text-sm font-medium text-aegeanBlue/70 mb-1">
                 Email
+                <input 
+                  type="email" 
+                  name="email" 
+                  required
+                  className="w-full mt-1 px-4 py-2 border border-aegeanBlue/20 rounded-md focus:ring-2 focus:ring-oliveGold/50 focus:border-oliveGold outline-none"
+                  placeholder="you@example.com"
+                />
               </label>
-              <input 
-                type="email" 
-                name="email" 
-                id="email" 
-                required
-                className="w-full px-4 py-2 border border-aegeanBlue/20 rounded-md focus:ring-2 focus:ring-oliveGold/50 focus:border-oliveGold outline-none"
-                placeholder="you@example.com"
-              />
-            </div>
+            </p>
             
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium text-aegeanBlue/70 mb-1">
+            <p>
+              <label className="block text-sm font-medium text-aegeanBlue/70 mb-1">
                 Name (Optional)
+                <input 
+                  type="text" 
+                  name="name"
+                  className="w-full mt-1 px-4 py-2 border border-aegeanBlue/20 rounded-md focus:ring-2 focus:ring-oliveGold/50 focus:border-oliveGold outline-none"
+                  placeholder="Your name"
+                />
               </label>
-              <input 
-                type="text" 
-                name="name" 
-                id="name"
-                className="w-full px-4 py-2 border border-aegeanBlue/20 rounded-md focus:ring-2 focus:ring-oliveGold/50 focus:border-oliveGold outline-none"
-                placeholder="Your name"
-              />
-            </div>
+            </p>
             
-            <div className="flex items-start">
-              <div className="flex items-center h-5">
+            <p className="flex items-start">
+              <label className="flex items-start">
                 <input
-                  id="interest"
                   name="interest"
                   type="checkbox"
-                  className="h-4 w-4 text-oliveGold border-aegeanBlue/20 rounded focus:ring-oliveGold/50"
+                  className="h-4 w-4 mt-1 text-oliveGold border-aegeanBlue/20 rounded focus:ring-oliveGold/50"
                 />
-              </div>
-              <div className="ml-3 text-sm">
-                <label htmlFor="interest" className="text-aegeanBlue/70">
+                <span className="ml-3 text-sm text-aegeanBlue/70">
                   I'd like to participate in beta testing
-                </label>
-              </div>
-            </div>
+                </span>
+              </label>
+            </p>
             
             <div className="flex gap-3 justify-end">
               <Button 
