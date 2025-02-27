@@ -139,8 +139,24 @@ const PhilosopherChat = () => {
           { sender: 'philosopher', philosopherId: selectedPhilosopher.id, text: randomResponse }
         ]);
         setIsProcessing(false);
+        
+        // Focus back on input after response using a small delay to ensure the DOM is ready
+        setTimeout(() => {
+          const inputElement = document.getElementById('chat-input');
+          if (inputElement) {
+            inputElement.focus();
+          }
+        }, 50);
       }, 1500);
     }
+  };
+  
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+    // Shift+Enter will create a new line without submitting (default textarea behavior)
   };
   
   return (
@@ -211,7 +227,7 @@ const PhilosopherChat = () => {
           {/* Chat messages */}
           <div 
             ref={messagesContainerRef}
-            className="flex-grow overflow-y-auto p-4 space-y-4 bg-marbleWhite/50 h-[calc(100vh-16rem)]"
+            className="flex-grow overflow-y-auto p-4 space-y-4 bg-marbleWhite/50 h-[calc(60vh-8rem)]"
           >
             {messages.length === 0 ? (
               <div className="h-full flex items-center justify-center">
@@ -241,7 +257,12 @@ const PhilosopherChat = () => {
                           : `${selectedPhilosopher.accent} rounded-tl-none`
                       }`}
                     >
-                      {message.text}
+                      {message.text.split('\n').map((text, i) => (
+                        <React.Fragment key={i}>
+                          {text}
+                          {i !== message.text.split('\n').length - 1 && <br />}
+                        </React.Fragment>
+                      ))}
                     </div>
                   </motion.div>
                 </AnimatePresence>
@@ -264,14 +285,16 @@ const PhilosopherChat = () => {
           {/* Chat input */}
           <div className="p-4 border-t bg-white">
             <div className="flex space-x-2">
-              <input
-                type="text"
+              <textarea
+                id="chat-input"
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
-                placeholder={`Ask ${selectedPhilosopher.name} something...`}
-                className="flex-grow py-2 px-4 border border-aegeanBlue/20 rounded-md focus:outline-none focus:ring-2 focus:ring-aegeanBlue/50 bg-marbleWhite"
-                onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                placeholder={`Ask ${selectedPhilosopher.name} something... (Shift+Enter for new line)`}
+                className="flex-grow py-2 px-4 border border-aegeanBlue/20 rounded-md focus:outline-none focus:ring-2 focus:ring-aegeanBlue/50 bg-marbleWhite min-h-[2.5rem] max-h-32 resize-y"
+                onKeyDown={handleKeyPress}
                 disabled={isProcessing}
+                rows={1}
+                autoFocus
               />
               <Button
                 onClick={handleSendMessage}
