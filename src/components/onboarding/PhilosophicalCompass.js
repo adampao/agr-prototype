@@ -134,10 +134,10 @@ const PhilosophicalCompass = ({ onContinue }) => {
                 className={`transition-all duration-200 ${lifeGoal === goal.id ? 'ring-2 ring-philosophicalPurple' : ''}`}
                 onClick={() => setLifeGoal(goal.id)}
               >
-                <div className="p-2">
-                  <h4 className="font-semibold text-lg mb-1">{goal.label}</h4>
-                  <p className="text-sm text-aegeanBlue/70">{goal.description}</p>
-                </div>
+             <div className="p-2">
+  <span className="text-lg block mb-1">{goal.label}</span>
+  <p className="text-sm text-aegeanBlue/70">{goal.description}</p>
+</div>
               </Card>
             </motion.div>
           ))}
