@@ -39,9 +39,7 @@ const HomePage = () => {
               <Link to="/onboarding">
                 <Button size="lg">Begin Your Journey</Button>
               </Link>
-              <Link to="/about">
-                <Button variant="outline" size="lg">Learn More</Button>
-              </Link>
+              <Button variant="outline" size="lg" onClick={() => document.getElementById('waitlist-modal').showModal()}>Join the Waitlist</Button>
             </motion.div>
           </div>
         </div>
@@ -262,6 +260,74 @@ const HomePage = () => {
           </Link>
         </div>
       </div>
+
+      {/* Waitlist Modal */}
+      <dialog id="waitlist-modal" className="modal p-0 rounded-lg shadow-elegant max-w-md w-full bg-white">
+        <div className="p-6">
+          <h3 className="text-2xl font-serif font-bold text-aegeanBlue mb-4">Join Our Waitlist</h3>
+          <p className="text-aegeanBlue/80 mb-6">
+            Be the first to know when The Oikosystem launches. We'll notify you as soon as it's ready.
+          </p>
+          
+          <form name="waitlist" method="POST" data-netlify="true" className="space-y-4">
+            <input type="hidden" name="form-name" value="waitlist" />
+            
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-aegeanBlue/70 mb-1">
+                Email
+              </label>
+              <input 
+                type="email" 
+                name="email" 
+                id="email" 
+                required
+                className="w-full px-4 py-2 border border-aegeanBlue/20 rounded-md focus:ring-2 focus:ring-oliveGold/50 focus:border-oliveGold outline-none"
+                placeholder="you@example.com"
+              />
+            </div>
+            
+            <div>
+              <label htmlFor="name" className="block text-sm font-medium text-aegeanBlue/70 mb-1">
+                Name (Optional)
+              </label>
+              <input 
+                type="text" 
+                name="name" 
+                id="name"
+                className="w-full px-4 py-2 border border-aegeanBlue/20 rounded-md focus:ring-2 focus:ring-oliveGold/50 focus:border-oliveGold outline-none"
+                placeholder="Your name"
+              />
+            </div>
+            
+            <div className="flex items-start">
+              <div className="flex items-center h-5">
+                <input
+                  id="interest"
+                  name="interest"
+                  type="checkbox"
+                  className="h-4 w-4 text-oliveGold border-aegeanBlue/20 rounded focus:ring-oliveGold/50"
+                />
+              </div>
+              <div className="ml-3 text-sm">
+                <label htmlFor="interest" className="text-aegeanBlue/70">
+                  I'd like to participate in beta testing
+                </label>
+              </div>
+            </div>
+            
+            <div className="flex gap-3 justify-end">
+              <Button 
+                variant="ghost" 
+                onClick={() => document.getElementById('waitlist-modal').close()}
+                type="button"
+              >
+                Cancel
+              </Button>
+              <Button type="submit">Submit</Button>
+            </div>
+          </form>
+        </div>
+      </dialog>
     </div>
   );
 };
