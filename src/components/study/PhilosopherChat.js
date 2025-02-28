@@ -137,10 +137,12 @@ const PhilosopherChat = () => {
       try {
         if (useClaudeApi) {
           // Format previous messages for Claude API
-          const previousMessages = messages.map(msg => ({
-            role: msg.sender === 'user' ? 'user' : 'assistant',
-            content: msg.text
-          }));
+          const previousMessages = messages
+            .filter(msg => msg.sender !== 'system') // Exclude system messages
+            .map(msg => ({
+              role: msg.sender === 'user' ? 'user' : 'assistant',
+              content: msg.text
+            }));
           
           // Send to Claude API via our Netlify function
           const response = await sendMessageToPhilosopher(

@@ -40,8 +40,8 @@ exports.handler = async function(event, context) {
       "You are an ancient Greek philosopher having a thoughtful dialogue with the user.";
     
     // Format the conversation history for Claude API
+    // The system prompt needs to be a top-level parameter, not a message
     const messages = [
-      { role: "system", content: systemPrompt },
       ...previousMessages,
       { role: "user", content: prompt }
     ];
@@ -77,6 +77,7 @@ exports.handler = async function(event, context) {
         response = await axios.post('https://api.anthropic.com/v1/messages', {
           model: currentModel,
           max_tokens: 1000,
+          system: systemPrompt,
           messages: messages
         }, {
           headers: {
