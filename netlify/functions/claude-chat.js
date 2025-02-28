@@ -83,7 +83,7 @@ exports.handler = async function(event, context) {
           headers: {
             'Content-Type': 'application/json',
             'x-api-key': process.env.ANTHROPIC_API_KEY,
-            'anthropic-version': '2023-09-15'
+            'anthropic-version': '2023-06-01'
           },
           timeout: 30000 // 30 second timeout
         });
