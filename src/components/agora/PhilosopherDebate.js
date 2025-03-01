@@ -539,6 +539,56 @@ if (
           isConclusion: true
         }
       ]);
+
+       // Get philosopher 3's conclusion
+       const promptConclusion3 = `You are ${philosopher3.name} in a philosophical debate with ${philosopher1.name} and ${philosopher2.name} on the topic: "${topicText}". Please provide your concluding statement, summarizing your position and the key points of your argument. Keep it concise (about 100 words) and maintain your historical perspective as ${philosopher2.name} from ancient Greece (${philosopher2.timePeriod}).`;
+      
+       const response3 = await sendMessageToPhilosopher(
+         philosopher3.id,
+         promptConclusion3,
+         previousMessages.concat([
+           { 
+             role: 'assistant', 
+             content: `[${philosopher1.name}]: ${response1.response}, [${philosopher2.name}]: ${response2.response}`
+           }
+         ])
+       );
+       
+       // Add philosopher 3's conclusion
+       setDebateMessages(messages => [
+         ...messages,
+         { 
+           type: 'philosopher', 
+           philosopherId: philosopher3.id, 
+           text: response3.response,
+           isConclusion: true
+         }
+       ]);
+
+        // Get philosopher 4's conclusion
+        const promptConclusion4 = `You are ${philosopher4.name} in a philosophical debate with ${philosopher1.name} and ${philosopher2.name} and ${philosopher3.name} on the topic: "${topicText}". Please provide your concluding statement, summarizing your position and the key points of your argument. Keep it concise (about 100 words) and maintain your historical perspective as ${philosopher2.name} from ancient Greece (${philosopher2.timePeriod}).`;
+      
+        const response4 = await sendMessageToPhilosopher(
+          philosopher4.id,
+          promptConclusion3,
+          previousMessages.concat([
+            { 
+              role: 'assistant', 
+              content: `[${philosopher1.name}]: ${response1.response} , [${philosopher2.name}]: ${response2.response} , [${philosopher3.name}]: ${response3.response}`
+            }
+          ])
+        );
+        
+        // Add philosopher 4's conclusion
+        setDebateMessages(messages => [
+          ...messages,
+          { 
+            type: 'philosopher', 
+            philosopherId: philosopher4.id, 
+            text: response4.response,
+            isConclusion: true
+          }
+        ]);
       
       // Add final system message
       setDebateMessages(messages => [
