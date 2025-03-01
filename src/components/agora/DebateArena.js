@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import Card from '../common/Card';
 import Button from '../common/Button';
+import PhilosopherDebate from './PhilosopherDebate';
 
 // Sample debate topics for the prototype
 const sampleDebates = [
@@ -19,7 +20,7 @@ const sampleDebates = [
     description: 'Is justice merely what serves the strongest, as Thrasymachus argues, or is it an objective virtue, as Socrates contends?',
     participants: ['Platonic Academy', 'Sophist School'],
     status: 'scheduled',
-    startTime: '2025-03-01T18:00:00.000Z'
+    startTime: '2025-03-15T18:00:00.000Z'
   },
   {
     id: 'debate3',
@@ -33,7 +34,7 @@ const sampleDebates = [
 ];
 
 const DebateArena = () => {
-  const [activeTab, setActiveTab] = useState('upcoming');
+  const [activeTab, setActiveTab] = useState('interactive');
   
   const filteredDebates = sampleDebates.filter(debate => {
     if (activeTab === 'upcoming') return debate.status === 'scheduled';
@@ -48,14 +49,26 @@ const DebateArena = () => {
         <h2 className="text-3xl font-serif font-bold text-aegeanBlue">
           Philosophical Debates
         </h2>
-        <Button onClick={() => alert('Challenge feature will be available in the full version')}>
-          Challenge to Debate
-        </Button>
+        {activeTab !== 'interactive' && (
+          <Button onClick={() => setActiveTab('interactive')}>
+            Create Your Own Debate
+          </Button>
+        )}
       </div>
       
       {/* Tabs */}
       <div className="border-b border-aegeanBlue/10 mb-6">
-        <div className="flex space-x-8">
+        <div className="flex space-x-6">
+          <button
+            className={`pb-4 font-medium text-lg border-b-2 ${
+              activeTab === 'interactive'
+                ? 'border-oliveGold text-aegeanBlue'
+                : 'border-transparent text-aegeanBlue/60 hover:text-aegeanBlue hover:border-aegeanBlue/30'
+            }`}
+            onClick={() => setActiveTab('interactive')}
+          >
+            Interactive Debate
+          </button>
           <button
             className={`pb-4 font-medium text-lg border-b-2 ${
               activeTab === 'upcoming'
@@ -89,7 +102,9 @@ const DebateArena = () => {
         </div>
       </div>
       
-      {filteredDebates.length > 0 ? (
+      {activeTab === 'interactive' ? (
+        <PhilosopherDebate />
+      ) : filteredDebates.length > 0 ? (
         <div className="space-y-6">
           {filteredDebates.map((debate, index) => (
             <motion.div
