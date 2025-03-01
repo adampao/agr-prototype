@@ -111,6 +111,9 @@ const debateTopics = [
 const PhilosopherDebate = () => {
   const [philosopher1, setPhilosopher1] = useState(null);
   const [philosopher2, setPhilosopher2] = useState(null);
+  const [philosopher3, setPhilosopher3] = useState(null); // Add the third philosopher
+  const [philosopher4, setPhilosopher4] = useState(null); // Add the fourth philosopher
+  const [philosopherInvites, setPhilosopherInvites] = useState({});
   const [selectedTopic, setSelectedTopic] = useState(null);
   const [customTopic, setCustomTopic] = useState('');
   const [debateMessages, setDebateMessages] = useState([]);
@@ -124,8 +127,18 @@ const PhilosopherDebate = () => {
     [philosopher1?.id]: 0, 
     [philosopher2?.id]: 0 
   });
+  const [hasVoted, setHasVoted] = useState(false);  // Add this state to track if user has voted
+  const [componentKey, setComponentKey] = useState(0);
+ 
   
   const messagesEndRef = useRef(null);
+  // Helper function to get the next philosopher's turn
+const getNextTurn = (currentId) => {
+  const activePhilosophers = [philosopher1, philosopher2, philosopher3, philosopher4].filter(Boolean);
+  const currentIndex = activePhilosophers.findIndex(p => p.id === currentId);
+  const nextIndex = (currentIndex + 1) % activePhilosophers.length;
+  return activePhilosophers[nextIndex].id;
+};
   
   // Scroll to bottom of messages when they update
   useEffect(() => {
@@ -244,7 +257,9 @@ const PhilosopherDebate = () => {
       
 ${otherPhilosopher.name} has just said: "${lastStatement?.text || "We are debating about " + (selectedTopic === 'custom' ? customTopic : debateTopics.find(t => t.id === selectedTopic)?.description)}".
 
-Please respond to ${otherPhilosopher.name}'s points, defending your philosophical position and challenging theirs. Keep your response concise (about 150 words) and remember to maintain your historical perspective as ${currentPhilosopher.name} from ancient Greece (${currentPhilosopher.timePeriod}).`;
+Please respond to ${otherPhilosopher.name}'s points, defending your philosophical position and challenging theirs. If appropriate, you may mention another philosopher like Plato, Heraclitus, Xenophon, Socrates, Aristotle, Pythagoras or another one if their ideas are relevant to this topic.
+
+Keep your response concise (about 150 words) and remember to maintain your historical perspective as ${currentPhilosopher.name} from ancient Greece (${currentPhilosopher.timePeriod}).`;
       
       // Format messages for API call
       const previousMessages = debateMessages
@@ -263,17 +278,19 @@ Please respond to ${otherPhilosopher.name}'s points, defending your philosophica
       );
       
 // Check if the response mentions another philosopher
-philosophers.forEach(phil => {
-  if (phil.id !== currentPhilosopher.id && 
-      phil.id !== otherPhilosopher.id && 
-      response.response.includes(phil.name)) {
-    setSwitchSuggestion({
-      suggestedPhilosopher: phil.name,
-      currentPhilosopher: currentPhilosopher.name,
-      reason: `This topic involves aspects of ${phil.specialty}`
-    });
-  }
-});
+const currentPhilosophers = [philosopher1, philosopher2, philosopher3, philosopher4].filter(Boolean);
+if (currentPhilosophers.length < 4) {
+  philosophers.forEach(phil => {
+    if (currentPhilosophers.every(p => p.id !== phil.id) && 
+        response.response.includes(phil.name)) {
+      setSwitchSuggestion({
+        suggestedPhilosopher: phil.name,
+        currentPhilosopher: currentPhilosopher.name,
+        reason: `This topic involves aspects of ${phil.specialty}`
+      });
+    }
+  });
+}
 
       // Add the response to the debate messages
       setDebateMessages(messages => [
@@ -287,7 +304,8 @@ philosophers.forEach(phil => {
       ]);
       
       // Switch turns to the other philosopher
-      setCurrentTurn(otherPhilosopherId);
+      const nextTurn = getNextTurn(currentPhilosopher.id);
+setCurrentTurn(nextTurn);
       
     } catch (error) {
       console.error('Error continuing debate:', error);
@@ -309,9 +327,11 @@ const handleVote = (philosopherId) => {
     ...prevVotes,
     [philosopherId]: (prevVotes[philosopherId] || 0) + 1
   }));
-  
-  // Add system message about the vote
-  setDebateMessages(messages => [
+
+  setHasVoted(true);
+
+   // Add system message about the vote
+   setDebateMessages(messages => [
     ...messages,
     { 
       type: 'system', 
@@ -325,6 +345,9 @@ const handleVote = (philosopherId) => {
     if (!userPrompt.trim() || isLoading) return;
     
     setIsLoading(true);
+
+    const respondingPhilosopherId = currentTurn;
+  const respondingPhilosopher = philosophers.find(p => p.id === respondingPhilosopherId);
     
     // Add user message to the debate
     setDebateMessages(messages => [
@@ -332,10 +355,63 @@ const handleVote = (philosopherId) => {
       { type: 'user', text: userPrompt.trim() }
     ]);
     
+// Look for direct requests to add philosophers
+const lowerPrompt = userPrompt.toLowerCase().trim();
+if (
+  (lowerPrompt.includes("add") || 
+   lowerPrompt.includes("bring") || 
+   lowerPrompt.includes("introduce") ||
+   lowerPrompt.includes("invite")) && 
+  !philosopher3
+) {
+  // Check if a specific philosopher is mentioned
+  let mentionedPhil = null;
+  
+  philosophers.forEach(phil => {
+    if (
+      phil.id !== philosopher1.id && 
+      phil.id !== philosopher2.id &&
+      lowerPrompt.includes(phil.name.toLowerCase())
+    ) {
+      mentionedPhil = phil;
+    }
+  });
+  
+  // If a specific philosopher was mentioned
+  if (mentionedPhil) {
+    setSwitchSuggestion({
+      suggestedPhilosopher: mentionedPhil.name,
+      currentPhilosopher: philosophers.find(p => p.id === respondingPhilosopherId)?.name,
+      reason: `The audience has requested ${mentionedPhil.name} join our discussion.`
+    });
+  } 
+  // If no specific philosopher was mentioned but user wants to add one
+  else if (
+    lowerPrompt.includes("philosopher") || 
+    lowerPrompt.includes("another") ||
+    lowerPrompt.includes("third")
+  ) {
+    // Find philosophers not in the debate
+    const availablePhils = philosophers.filter(p => 
+      p.id !== philosopher1.id && 
+      p.id !== philosopher2.id
+    );
+    
+    if (availablePhils.length > 0) {
+      // Choose a philosopher based on the topic
+      const randomPhil = availablePhils[Math.floor(Math.random() * availablePhils.length)];
+      
+      setSwitchSuggestion({
+        suggestedPhilosopher: randomPhil.name,
+        currentPhilosopher: philosophers.find(p => p.id === respondingPhilosopherId)?.name,
+        reason: `The audience wishes to hear from another perspective. ${randomPhil.name}'s views on ${randomPhil.specialty} would be valuable.`
+      });
+    }
+  }
+}
+
     try {
-      // Determine which philosopher should respond to the user
-      const respondingPhilosopherId = currentTurn;
-      const respondingPhilosopher = philosophers.find(p => p.id === respondingPhilosopherId);
+      
       
       // Format messages for API call
       const previousMessages = debateMessages
@@ -366,6 +442,11 @@ const handleVote = (philosopherId) => {
           isResponse: true
         }
       ]);
+
+      // Switch turns to the next philosopher after responding to the user
+    // This ensures different philosophers respond to subsequent user questions
+    const nextTurn = getNextTurn(respondingPhilosopherId);
+    setCurrentTurn(nextTurn);
       
     } catch (error) {
       console.error('Error handling user intervention:', error);
@@ -486,6 +567,9 @@ const handleVote = (philosopherId) => {
   const resetDebate = () => {
     setPhilosopher1(null);
     setPhilosopher2(null);
+    setPhilosopher3(null);
+    setPhilosopher4(null);
+    setPhilosopherInvites({});
     setSelectedTopic(null);
     setCustomTopic('');
     setDebateMessages([]);
@@ -493,7 +577,12 @@ const handleVote = (philosopherId) => {
     setDebateStage('setup');
     setCurrentTurn(null);
     setUserPrompt('');
+    setSwitchSuggestion(null);
+    setVotes({});  // Reset votes
+    setHasVoted(false);  // Reset hasVoted flag
+    setComponentKey(prevKey => prevKey + 1);
   };
+  
   
   // Function to save debate transcript
 const saveDebate = () => {
@@ -548,10 +637,10 @@ const saveDebate = () => {
   // Set up debate selection UI
   if (debateStage === 'setup') {
     return (
-      <div className="w-full max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-md">
-        <h2 className="text-2xl font-serif font-bold text-aegeanBlue mb-6">
-          Create a Philosophical Debate
-        </h2>
+      <div key={componentKey} className="w-full max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-md">
+      <h2 className="text-2xl font-serif font-bold text-aegeanBlue mb-6">
+        Create a Philosophical Debate
+      </h2>
         
         {/* Philosopher Selection */}
         <div className="mb-6">
@@ -658,6 +747,7 @@ const saveDebate = () => {
           </Button>
         </div>
       </div>
+      
     );
   }
   
@@ -667,8 +757,22 @@ const handlePhilosopherSwitch = (suggestion) => {
   
   // Find the suggested philosopher object
   const suggestedPhil = philosophers.find(p => p.name === suggestion.suggestedPhilosopher);
-  
   if (!suggestedPhil) return;
+  
+  // Check if we already have 4 philosophers
+  const currentPhilosophers = [philosopher1, philosopher2, philosopher3, philosopher4].filter(Boolean);
+  if (currentPhilosophers.length >= 4) {
+    // Add a system message explaining we've reached the maximum
+    setDebateMessages(messages => [
+      ...messages,
+      { 
+        type: 'system', 
+        text: `${suggestion.currentPhilosopher} suggests ${suggestion.suggestedPhilosopher} would have valuable input, but our debate already has the maximum number of participants.` 
+      }
+    ]);
+    setSwitchSuggestion(null);
+    return;
+  }
   
   // Add system message about the switch
   setDebateMessages(messages => [
@@ -678,13 +782,69 @@ const handlePhilosopherSwitch = (suggestion) => {
       text: `${suggestion.currentPhilosopher} has suggested that ${suggestion.suggestedPhilosopher} join the debate on this topic.`
     }
   ]);
+
+  // Track who has invited whom
+  const invitingPhilosopherId = philosophers.find(p => p.name === suggestion.currentPhilosopher)?.id;
+  setPhilosopherInvites(prev => ({
+    ...prev,
+    [invitingPhilosopherId]: suggestedPhil.id
+  }));
   
-  // Replace the current philosopher who made the suggestion
-  if (philosopher1.name === suggestion.currentPhilosopher) {
-    setPhilosopher1(suggestedPhil);
-  } else if (philosopher2.name === suggestion.currentPhilosopher) {
-    setPhilosopher2(suggestedPhil);
+  // Add the new philosopher to the first available slot
+  if (!philosopher3) {
+    setPhilosopher3(suggestedPhil);
+  } else if (!philosopher4) {
+    setPhilosopher4(suggestedPhil);
   }
+  
+  // Get the debate context to give to the new philosopher
+  const debateContext = debateMessages
+    .filter(m => m.type === 'philosopher' || m.type === 'system')
+    .map(m => {
+      if (m.type === 'philosopher') {
+        const phil = philosophers.find(p => p.id === m.philosopherId);
+        return `${phil?.name}: ${m.text}`;
+      } else {
+        return `[System]: ${m.text}`;
+      }
+    })
+    .join('\n\n');
+  
+  // Add introduction message from the new philosopher with full context
+  setTimeout(async () => {
+    try {
+      const topicText = selectedTopic === 'custom' 
+        ? customTopic 
+        : debateTopics.find(t => t.id === selectedTopic)?.description || '';
+      
+      const prompt = `You are ${suggestedPhil.name} joining an ongoing philosophical debate on the topic: "${topicText}".
+      
+Here is the debate so far:
+
+${debateContext}
+
+Please provide a brief introduction (about 100 words) explaining your perspective on this topic, acknowledging that you've been invited to join the conversation by ${suggestion.currentPhilosopher}.`;
+      
+      const response = await sendMessageToPhilosopher(
+        suggestedPhil.id,
+        prompt,
+        []
+      );
+      
+      setDebateMessages(messages => [
+        ...messages,
+        { 
+          type: 'philosopher', 
+          philosopherId: suggestedPhil.id, 
+          text: response.response,
+          isIntroduction: true
+        }
+      ]);
+      
+    } catch (error) {
+      console.error('Error introducing new philosopher:', error);
+    }
+  }, 500);
   
   // Clear the suggestion
   setSwitchSuggestion(null);
@@ -695,39 +855,69 @@ const handlePhilosopherSwitch = (suggestion) => {
     <div className="w-full max-w-4xl mx-auto flex flex-col h-full bg-white rounded-lg shadow-md overflow-hidden">
       {/* Debate Header */}
       <div className="p-4 border-b bg-marbleWhite flex justify-between items-center">
-        <div className="flex items-center space-x-4">
-          {philosopher1 && (
-            <div className={`flex items-center p-2 rounded-lg ${philosopher1.accent}`}>
-              <div className="w-10 h-10 rounded-full overflow-hidden mr-2">
-                <img 
-                  src={philosopher1.modernImageSrc} 
-                  alt={philosopher1.name} 
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <span className="font-medium">{philosopher1.name}</span>
-            </div>
-          )}
-          <div className="text-aegeanBlue">vs</div>
-          {philosopher2 && (
-            <div className={`flex items-center p-2 rounded-lg ${philosopher2.accent}`}>
-              <div className="w-10 h-10 rounded-full overflow-hidden mr-2">
-                <img 
-                  src={philosopher2.modernImageSrc} 
-                  alt={philosopher2.name} 
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <span className="font-medium">{philosopher2.name}</span>
-            </div>
-          )}
+  <div className="flex items-center space-x-4">
+    {philosopher1 && (
+      <div className={`flex items-center p-2 rounded-lg ${philosopher1.accent}`}>
+        <div className="w-10 h-10 rounded-full overflow-hidden mr-2">
+          <img 
+            src={philosopher1.modernImageSrc} 
+            alt={philosopher1.name} 
+            className="w-full h-full object-cover"
+          />
         </div>
-        <div>
-          <Button variant="outline" size="sm" onClick={resetDebate}>
-            New Debate
-          </Button>
-        </div>
+        <span className="font-medium">{philosopher1.name}</span>
       </div>
+    )}
+    <div className="text-aegeanBlue">vs</div>
+    {philosopher2 && (
+      <div className={`flex items-center p-2 rounded-lg ${philosopher2.accent}`}>
+        <div className="w-10 h-10 rounded-full overflow-hidden mr-2">
+          <img 
+            src={philosopher2.modernImageSrc} 
+            alt={philosopher2.name} 
+            className="w-full h-full object-cover"
+          />
+        </div>
+        <span className="font-medium">{philosopher2.name}</span>
+      </div>
+    )}
+    {philosopher3 && (
+      <>
+        <div className="text-aegeanBlue">vs</div>
+        <div className={`flex items-center p-2 rounded-lg ${philosopher3.accent}`}>
+          <div className="w-10 h-10 rounded-full overflow-hidden mr-2">
+            <img 
+              src={philosopher3.modernImageSrc} 
+              alt={philosopher3.name} 
+              className="w-full h-full object-cover"
+            />
+          </div>
+          <span className="font-medium">{philosopher3.name}</span>
+        </div>
+      </>
+    )}
+    {philosopher4 && (
+  <>
+    <div className="text-aegeanBlue">vs</div>
+    <div className={`flex items-center p-2 rounded-lg ${philosopher4.accent}`}>
+      <div className="w-10 h-10 rounded-full overflow-hidden mr-2">
+        <img 
+          src={philosopher4.modernImageSrc} 
+          alt={philosopher4.name} 
+          className="w-full h-full object-cover"
+        />
+      </div>
+      <span className="font-medium">{philosopher4.name}</span>
+    </div>
+  </>
+)}
+  </div>
+  <div>
+    <Button variant="outline" size="sm" onClick={resetDebate}>
+      New Debate
+    </Button>
+  </div>
+</div>
       
       {/* Debate Content */}
       <div className="flex-grow overflow-y-auto p-4 space-y-4 bg-marbleWhite/50">
@@ -807,7 +997,9 @@ const handlePhilosopherSwitch = (suggestion) => {
 />
 
 {/* Voting UI */}
-{debateStage === 'conclusion' && (
+{debateStage === 'conclusion' && 
+  !hasVoted &&
+  debateMessages.filter(m => m.type === 'philosopher' && m.isConclusion).length >= 2 && (
   <div className="w-full bg-marbleWhite/70 border border-aegeanBlue/20 rounded-lg p-4 mt-4">
     <h3 className="text-center font-medium text-aegeanBlue mb-2">
       Who made the stronger argument?
@@ -848,6 +1040,46 @@ const handlePhilosopherSwitch = (suggestion) => {
           </span>
         )}
       </Button>
+      
+      {philosopher3 && (
+        <Button
+          onClick={() => handleVote(philosopher3?.id)}
+          variant="outline"
+          className="flex items-center space-x-2"
+        >
+          <img 
+            src={philosopher3?.modernImageSrc} 
+            alt={philosopher3?.name} 
+            className="w-6 h-6 rounded-full object-cover" 
+          />
+          <span>{philosopher3?.name}</span>
+          {votes[philosopher3?.id] > 0 && (
+            <span className="ml-1 bg-aegeanBlue/10 px-2 py-0.5 rounded-full text-xs">
+              {votes[philosopher3?.id]}
+            </span>
+          )}
+        </Button>
+      )}
+
+{philosopher4 && (
+  <Button
+    onClick={() => handleVote(philosopher4?.id)}
+    variant="outline"
+    className="flex items-center space-x-2"
+  >
+    <img 
+      src={philosopher4?.modernImageSrc} 
+      alt={philosopher4?.name} 
+      className="w-6 h-6 rounded-full object-cover" 
+    />
+    <span>{philosopher4?.name}</span>
+    {votes[philosopher4?.id] > 0 && (
+      <span className="ml-1 bg-aegeanBlue/10 px-2 py-0.5 rounded-full text-xs">
+        {votes[philosopher4?.id]}
+      </span>
+    )}
+  </Button>
+)}
     </div>
   </div>
 )}
