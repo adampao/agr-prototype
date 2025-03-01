@@ -249,7 +249,7 @@ const PhilosopherChat = () => {
               // Reset the recently suggested flag after 5 minutes
               setTimeout(() => {
                 setRecentlySuggested(false);
-              }, 5 * 60 * 1000);
+              }, 1 * 10 * 1000);
             }, 1500);
 
             // Scroll to make sure the suggestion is visible
