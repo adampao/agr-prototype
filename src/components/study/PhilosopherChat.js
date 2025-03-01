@@ -2,6 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Button from '../common/Button';
 import { sendMessageToPhilosopher } from '../../services/claudeApi';
+import PhilosopherSwitch from './PhilosopherSwitchComponent';
+import { analyzeConversation, shouldSuggestPhilosopherSwitch } from './TopicDetectionService';
 
 const philosophers = [
   { 
@@ -120,6 +122,8 @@ const PhilosopherChat = () => {
   const [hoveredPhilosopher, setHoveredPhilosopher] = useState(null);
   const [useClaudeApi, setUseClaudeApi] = useState(true); // Toggle between sample responses and Claude API
   const [apiError, setApiError] = useState(null);
+  const [switchSuggestion, setSwitchSuggestion] = useState(null);
+  const [recentlySuggested, setRecentlySuggested] = useState(false);
   const messagesEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
   
@@ -141,21 +145,32 @@ const PhilosopherChat = () => {
       setApiError(null);
       
       try {
+        let philosopherResponse = "";
+        
         if (useClaudeApi) {
           // Format previous messages for Claude API
           const previousMessages = messages
-            .filter(msg => msg.sender !== 'system') // Exclude system messages
-            .map(msg => ({
-              role: msg.sender === 'user' ? 'user' : 'assistant',
-              content: msg.text
-            }));
+          .map(msg => {
+            // For all message types, create the appropriate format
+            if (msg.sender === 'user') {
+              return { role: 'user', content: msg.text };
+            } else if (msg.sender === 'system') {
+              // Include system messages as assistant messages with a prefix
+              return { role: 'assistant', content: `[System: ${msg.text}]` };
+            } else {
+              // Regular philosopher messages
+              return { role: 'assistant', content: msg.text };
+            }
+          });
+        
+        // Send to Claude API via our Netlify function
+        const response = await sendMessageToPhilosopher(
+          selectedPhilosopher.id, 
+          inputValue.trim(),
+          previousMessages
+        );
           
-          // Send to Claude API via our Netlify function
-          const response = await sendMessageToPhilosopher(
-            selectedPhilosopher.id, 
-            inputValue.trim(),
-            previousMessages
-          );
+          philosopherResponse = response.response;
           
           // Add philosopher message from Claude
           setMessages(prevMessages => [
@@ -163,21 +178,87 @@ const PhilosopherChat = () => {
             { 
               sender: 'philosopher', 
               philosopherId: selectedPhilosopher.id, 
-              text: response.response 
+              text: philosopherResponse 
             }
           ]);
+          
         } else {
           // Fallback to sample responses with a delay
+          const responses = sampleResponses[selectedPhilosopher.id];
+          philosopherResponse = responses[Math.floor(Math.random() * responses.length)];
+          
           setTimeout(() => {
-            const responses = sampleResponses[selectedPhilosopher.id];
-            const randomResponse = responses[Math.floor(Math.random() * responses.length)];
-            
             setMessages(prevMessages => [
               ...prevMessages, 
-              { sender: 'philosopher', philosopherId: selectedPhilosopher.id, text: randomResponse }
+              { sender: 'philosopher', philosopherId: selectedPhilosopher.id, text: philosopherResponse }
             ]);
           }, 1500);
         }
+        
+        // Only check for philosopher suggestions if we're using Claude API and not recently suggested
+        if (useClaudeApi && !recentlySuggested) {
+          // Look for mentions of other philosophers in the response
+          const mentionedPhilosophers = [];
+          
+          philosophers.forEach(philosopher => {
+            // Skip the current philosopher
+            if (philosopher.id !== selectedPhilosopher.id) {
+              // Check if this philosopher is mentioned in the response
+              if (philosopherResponse.includes(philosopher.name)) {
+                mentionedPhilosophers.push(philosopher);
+              }
+            }
+          });
+          
+          console.log("Mentioned philosophers:", mentionedPhilosophers);
+          
+          // If any philosophers were mentioned
+          if (mentionedPhilosophers.length > 0) {
+            // Use the first mentioned philosopher
+            const suggestedPhilosopher = mentionedPhilosophers[0];
+            
+            // Extract a reason from the response
+            let reason = "They may have more relevant insights on this topic.";
+            
+            // Look for sentences mentioning the philosopher
+            const sentences = philosopherResponse.split(/[.!?]+/);
+            for (const sentence of sentences) {
+              if (sentence.includes(suggestedPhilosopher.name)) {
+                reason = sentence.trim();
+                break;
+              }
+            }
+            
+            // Set the switch suggestion
+            console.log("Setting switch suggestion:", {
+              suggestedPhilosopher: suggestedPhilosopher.name,
+              currentPhilosopher: selectedPhilosopher.name,
+              reason: reason
+            });
+            
+            // Wait a moment for the UI to update with the philosopher's response
+            setTimeout(() => {
+              setSwitchSuggestion({
+                suggestedPhilosopher: suggestedPhilosopher.name,
+                currentPhilosopher: selectedPhilosopher.name,
+                reason: reason,
+                topic: "historical context"
+              });
+              setRecentlySuggested(true);
+              
+              // Reset the recently suggested flag after 5 minutes
+              setTimeout(() => {
+                setRecentlySuggested(false);
+              }, 5 * 60 * 1000);
+            }, 1500);
+
+            // Scroll to make sure the suggestion is visible
+            setTimeout(() => {
+  messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+}, 1600);
+          }
+        }
+        
       } catch (error) {
         console.error('Error getting philosopher response:', error);
         setApiError('There was an error communicating with the philosopher. Please try again.');
@@ -202,6 +283,82 @@ const PhilosopherChat = () => {
         }, 50);
       }
     }
+  };
+
+  const handleAcceptSwitch = () => {
+    if (!switchSuggestion) return;
+    
+    // Find the suggested philosopher object
+    const newPhilosopher = philosophers.find(p => 
+      p.name === switchSuggestion.suggestedPhilosopher
+    );
+    
+    if (newPhilosopher) {
+      // Create a summary of the last few messages for context
+      const recentUserMessages = messages
+        .filter(msg => msg.sender === 'user')
+        .slice(-2)
+        .map(msg => msg.text);
+      
+      const recentPhilosopherMessages = messages
+        .filter(msg => msg.sender === 'philosopher')
+        .slice(-1)
+        .map(msg => msg.text);
+      
+      // Add system message about the switch
+      setMessages(prevMessages => [
+        ...prevMessages,
+        { 
+          sender: 'system', 
+          text: `${selectedPhilosopher.name} has suggested continuing this discussion with ${newPhilosopher.name}, who has greater expertise in this area.`
+        }
+      ]);
+
+     
+      
+      // Switch to the new philosopher
+      setSelectedPhilosopher(newPhilosopher);
+      
+      // Clear the suggestion
+      setSwitchSuggestion(null);
+      
+      // Create a contextual introduction from the new philosopher
+      // Wait a short moment to ensure UI updates
+      setTimeout(() => {
+        const contextMessage = `I understand you were discussing ${
+          recentUserMessages.length > 0 
+            ? `"${recentUserMessages.join('" and "')}"` 
+            : 'philosophical matters'
+        } with ${selectedPhilosopher.name}${
+          recentPhilosopherMessages.length > 0 
+            ? `, who mentioned that ${recentPhilosopherMessages[0].split('.')[0]}.` 
+            : '.'
+        } As ${newPhilosopher.name}, I'd be happy to continue this dialogue from my perspective, drawing on my expertise in ${newPhilosopher.specialty}.`;
+        
+        setMessages(prevMessages => [
+          ...prevMessages,
+          { 
+            sender: 'philosopher', 
+            philosopherId: newPhilosopher.id, 
+            text: contextMessage
+          }
+        ]);
+      }, 500);
+    }
+  };
+
+  const handleDeclineSwitch = () => {
+    // Add a message acknowledging the user's preference
+    setMessages(prevMessages => [
+      ...prevMessages,
+      { 
+        sender: 'system', 
+        text: `Continuing the conversation with ${selectedPhilosopher.name}.`
+      }
+    ]);
+    
+    // Clear the suggestion
+    setSwitchSuggestion(null);
   };
   
   const handleKeyPress = (e) => {
@@ -345,6 +502,15 @@ const PhilosopherChat = () => {
                 </div>
               </div>
             )}
+            {/* Philosopher switch suggestion component */}
+<PhilosopherSwitch
+  isVisible={!!switchSuggestion}
+  suggestedPhilosopher={switchSuggestion?.suggestedPhilosopher}
+  currentPhilosopher={selectedPhilosopher?.name}
+  reason={switchSuggestion?.reason}
+  onAccept={handleAcceptSwitch}
+  onDecline={handleDeclineSwitch}
+/>
             <div ref={messagesEndRef} />
           </div>
           
