@@ -19,6 +19,7 @@ const Button = ({
     tertiary: 'bg-philosophicalPurple text-marbleWhite hover:bg-philosophicalPurple/90 focus:ring-2 focus:ring-philosophicalPurple/50',
     outline: 'border border-aegeanBlue text-aegeanBlue bg-transparent hover:bg-aegeanBlue/10 focus:ring-2 focus:ring-aegeanBlue/50',
     ghost: 'text-aegeanBlue hover:bg-aegeanBlue/10 focus:ring-2 focus:ring-aegeanBlue/50',
+    danger: 'border border-terracotta text-terracotta bg-transparent hover:bg-terracotta/10 focus:ring-2 focus:ring-terracotta/50',
   };
   
   const sizeClasses = {
