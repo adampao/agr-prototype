@@ -169,21 +169,7 @@ const [voiceEnabled, setVoiceEnabled] = useState(true);
             }
           });
         
-          if (voiceEnabled) {
-            setIsGeneratingAudio(true);
-            try {
-              const audioUrl = await generateSpeech(philosopherResponse, selectedPhilosopher.id);
-              setAudioUrls(prev => ({
-                ...prev,
-                [messages.length]: audioUrl // Use the index of the new message
-              }));
-            } catch (error) {
-              console.error('Error generating audio:', error);
-              // Add visual feedback about audio generation error if needed
-            } finally {
-              setIsGeneratingAudio(false);
-            }
-          }
+        
 
         // Send to Claude API via our Netlify function
         const response = await sendMessageToPhilosopher(
@@ -203,6 +189,22 @@ const [voiceEnabled, setVoiceEnabled] = useState(true);
               text: philosopherResponse 
             }
           ]);
+
+          if (voiceEnabled) {
+            setIsGeneratingAudio(true);
+            try {
+              const audioUrl = await generateSpeech(philosopherResponse, selectedPhilosopher.id);
+              setAudioUrls(prev => ({
+                ...prev,
+                [messages.length]: audioUrl // Use the index of the new message
+              }));
+            } catch (error) {
+              console.error('Error generating audio:', error);
+              // Add visual feedback about audio generation error if needed
+            } finally {
+              setIsGeneratingAudio(false);
+            }
+          }
           
         } else {
           // Fallback to sample responses with a delay
