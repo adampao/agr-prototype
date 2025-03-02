@@ -11,9 +11,12 @@ exports.handler = async function(event, context) {
     
     // Map of philosopher IDs to voice IDs (kept server-side for security)
     const philosopherVoiceMap = {
-      socrates: 'your_socrates_voice_id',
-      aristotle: 'your_aristotle_voice_id',
-      // ...other philosophers
+      socrates: "LysucvtFmzi1NVAE0rKp",  // Use your real voice IDs here
+      aristotle: "asDeXBMC8hUkhqqL7agO", 
+      plato: "DzcRs71mIqvZ5truEdVC",    
+      heraclitus: "D06pMr3Hh2Q3cWozbkFp", 
+      pythagoras: "7rBKQ2u3bcnWvvogpbSm", 
+      xenophon: "7p1Ofvcwsv7UBPoFNcpI"   
     };
     
     const voiceId = philosopherVoiceMap[philosopherId];

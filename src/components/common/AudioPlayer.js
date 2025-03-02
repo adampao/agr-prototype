@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 
 const AudioPlayer = ({ audioUrl, onEnded, autoPlay = false }) => {
+  console.log("AudioPlayer received URL:", audioUrl);
   const audioRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(autoPlay);
   const [volume, setVolume] = useState(0.7);

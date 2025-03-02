@@ -131,6 +131,22 @@ const PhilosopherChat = () => {
   const [audioUrls, setAudioUrls] = useState({});
 const [isGeneratingAudio, setIsGeneratingAudio] = useState(false);
 const [voiceEnabled, setVoiceEnabled] = useState(true);
+const testNetlifyFunction = async () => {
+  try {
+    console.log("Testing speech generation...");
+    const testText = "This is a test of the speech generation system.";
+    const audioUrl = await generateSpeech(testText, selectedPhilosopher.id);
+    console.log("Test result:", audioUrl ? "SUCCESS" : "FAILED");
+    
+    // Create an audio element and play it directly
+    if (audioUrl) {
+      const audio = new Audio(audioUrl);
+      audio.play();
+    }
+  } catch (error) {
+    console.error("Test failed:", error);
+  }
+};
 
   
   const scrollToBottom = () => {
@@ -193,18 +209,24 @@ const [voiceEnabled, setVoiceEnabled] = useState(true);
           if (voiceEnabled) {
             setIsGeneratingAudio(true);
             try {
-              const audioUrl = await generateSpeech(philosopherResponse, selectedPhilosopher.id);
-              setAudioUrls(prev => ({
-                ...prev,
-                [messages.length]: audioUrl // Use the index of the new message
-              }));
-            } catch (error) {
-              console.error('Error generating audio:', error);
-              // Add visual feedback about audio generation error if needed
-            } finally {
-              setIsGeneratingAudio(false);
-            }
-          }
+              console.log("Generating speech for:", philosopherResponse.substring(0, 50) + "...");
+    const newMessageIndex = messages.length; // Current length is the index of the message we just added
+    const audioUrl = await generateSpeech(philosopherResponse, selectedPhilosopher.id);
+    console.log("Audio URL generated:", audioUrl ? "SUCCESS" : "FAILED");
+    
+    setAudioUrls(prev => {
+      console.log("Setting audio URL for message index:", newMessageIndex);
+      return {
+        ...prev,
+        [newMessageIndex]: audioUrl
+      };
+    });
+  } catch (error) {
+    console.error('Error generating audio:', error);
+  } finally {
+    setIsGeneratingAudio(false);
+  }
+}
           
         } else {
           // Fallback to sample responses with a delay
@@ -474,6 +496,12 @@ const [voiceEnabled, setVoiceEnabled] = useState(true);
   >
     {voiceEnabled ? "Voice On" : "Voice Off"}
   </button>
+  <button
+  onClick={testNetlifyFunction}
+  className="text-xs p-1 rounded-md bg-terracotta/20 text-terracotta"
+>
+  Test Voice
+</button>
               </div>
             </div>
           </div>
