@@ -2,8 +2,10 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Button from '../common/Button';
 import { sendMessageToPhilosopher } from '../../services/claudeApi';
+import { generateSpeech } from '../../services/elevenLabsApi';
 import PhilosopherSwitch from './PhilosopherSwitchComponent';
 import { analyzeConversation, shouldSuggestPhilosopherSwitch } from './TopicDetectionService';
+import AudioPlayer from '../common/AudioPlayer';
 
 const philosophers = [
   { 
@@ -126,6 +128,10 @@ const PhilosopherChat = () => {
   const [recentlySuggested, setRecentlySuggested] = useState(false);
   const messagesEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
+  const [audioUrls, setAudioUrls] = useState({});
+const [isGeneratingAudio, setIsGeneratingAudio] = useState(false);
+const [voiceEnabled, setVoiceEnabled] = useState(true);
+
   
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -163,6 +169,22 @@ const PhilosopherChat = () => {
             }
           });
         
+          if (voiceEnabled) {
+            setIsGeneratingAudio(true);
+            try {
+              const audioUrl = await generateSpeech(philosopherResponse, selectedPhilosopher.id);
+              setAudioUrls(prev => ({
+                ...prev,
+                [messages.length]: audioUrl // Use the index of the new message
+              }));
+            } catch (error) {
+              console.error('Error generating audio:', error);
+              // Add visual feedback about audio generation error if needed
+            } finally {
+              setIsGeneratingAudio(false);
+            }
+          }
+
         // Send to Claude API via our Netlify function
         const response = await sendMessageToPhilosopher(
           selectedPhilosopher.id, 
@@ -441,6 +463,15 @@ const PhilosopherChat = () => {
                 >
                   {useClaudeApi ? "AI Mode" : "Demo Mode"}
                 </button>
+                <button 
+    onClick={() => setVoiceEnabled(!voiceEnabled)}
+    className={`text-xs p-1 rounded-md transition-colors ${
+      voiceEnabled ? 'bg-philosophicalPurple/20 text-philosophicalPurple' : 'bg-gray-200 text-gray-600'
+    }`}
+    title={voiceEnabled ? "Voice enabled" : "Voice disabled"}
+  >
+    {voiceEnabled ? "Voice On" : "Voice Off"}
+  </button>
               </div>
             </div>
           </div>
@@ -486,6 +517,16 @@ const PhilosopherChat = () => {
                           {i !== message.text.split('\n').length - 1 && <br />}
                         </React.Fragment>
                       ))}
+                      
+                      {/* Add audio player for philosopher messages */}
+                      {message.sender === 'philosopher' && audioUrls[index] && (
+                        <div className="mt-2 pt-2 border-t border-aegeanBlue/20">
+                          <AudioPlayer 
+                            audioUrl={audioUrls[index]} 
+                            autoPlay={index === messages.length - 1}
+                          />
+                        </div>
+                      )}
                     </div>
                   </motion.div>
                 </AnimatePresence>

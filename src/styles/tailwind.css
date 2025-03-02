@@ -118,3 +118,18 @@
   position: relative;
   z-index: 2;
 }
+
+/* CSS rule to ensure all content is above the paper styling */
+.journal-paper > div, 
+.journal-paper > p, 
+.journal-paper > h1, 
+.journal-paper > h2, 
+.journal-paper > h3, 
+.journal-paper > h4, 
+.journal-paper > h5, 
+.journal-paper > h6,
+.journal-paper button,
+.journal-paper a {
+  position: relative;
+  z-index: 10;
+}
