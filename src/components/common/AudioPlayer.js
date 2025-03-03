@@ -1,47 +1,138 @@
 import React, { useState, useRef, useEffect } from 'react';
 
 const AudioPlayer = ({ audioUrl, onEnded, autoPlay = false }) => {
-  console.log("AudioPlayer received URL:", audioUrl);
+  console.log("AudioPlayer component rendering with URL:", audioUrl);
+  
   const audioRef = useRef(null);
-  const [isPlaying, setIsPlaying] = useState(autoPlay);
+  const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(0.7);
+  const [isReady, setIsReady] = useState(false);
+  const [playAttempts, setPlayAttempts] = useState(0);
   
+  // Check when component mounts or URL changes
   useEffect(() => {
-    if (audioUrl && autoPlay) {
-      setIsPlaying(true);
+    console.log(`AudioPlayer useEffect for URL: ${audioUrl?.substring(0, 30)}...`);
+    if (!audioUrl) {
+      console.log("No audio URL provided to AudioPlayer");
+      return;
     }
-  }, [audioUrl, autoPlay]);
-  
-  useEffect(() => {
+    
+    // Reset state when URL changes
+    setIsPlaying(false);
+    setIsReady(false);
+    
     if (audioRef.current) {
-      if (isPlaying) {
-        audioRef.current.play().catch(err => {
-          console.error('Error playing audio:', err);
-          setIsPlaying(false);
-        });
-      } else {
-        audioRef.current.pause();
-      }
+      audioRef.current.src = audioUrl;
+      audioRef.current.load();
     }
-  }, [isPlaying]);
+  }, [audioUrl]);
   
+  // Set up event listeners
+  useEffect(() => {
+    if (!audioRef.current || !audioUrl) return;
+    
+    const handleCanPlay = () => {
+      console.log("🎵 Audio can play now!");
+      setIsReady(true);
+      
+      if (autoPlay) {
+        console.log("Attempting autoplay...");
+        playAudio();
+      }
+    };
+    
+    const handleError = (e) => {
+      console.error("❌ Audio error:", e);
+      if (audioRef.current?.error) {
+        console.error(
+          "Error details:",
+          audioRef.current.error.code,
+          audioRef.current.error.message
+        );
+      }
+    };
+    
+    const handleEnded = () => {
+      console.log("Audio playback ended");
+      setIsPlaying(false);
+      if (onEnded) onEnded();
+    };
+    
+    // Add event listeners
+    audioRef.current.addEventListener('canplay', handleCanPlay);
+    audioRef.current.addEventListener('error', handleError);
+    audioRef.current.addEventListener('ended', handleEnded);
+    
+    // Cleanup
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.removeEventListener('canplay', handleCanPlay);
+        audioRef.current.removeEventListener('error', handleError);
+        audioRef.current.removeEventListener('ended', handleEnded);
+      }
+    };
+  }, [audioUrl, autoPlay, onEnded]);
+  
+  // Handle play state changes
+  useEffect(() => {
+    if (!audioRef.current || !isReady) return;
+    
+    if (isPlaying) {
+      playAudio();
+    } else {
+      audioRef.current.pause();
+    }
+  }, [isPlaying, isReady]);
+  
+  // Update volume
   useEffect(() => {
     if (audioRef.current) {
       audioRef.current.volume = volume;
     }
   }, [volume]);
   
+  // Function to play audio with retry logic
+  const playAudio = () => {
+    if (!audioRef.current || !audioUrl) {
+      console.error("Cannot play: No audio element or URL");
+      return;
+    }
+    
+    setPlayAttempts(prev => prev + 1);
+    
+    console.log(`Attempting to play audio (attempt ${playAttempts + 1})...`);
+    const playPromise = audioRef.current.play();
+    
+    if (playPromise !== undefined) {
+      playPromise
+        .then(() => {
+          console.log("✅ Audio playback started successfully!");
+          setIsPlaying(true);
+        })
+        .catch(err => {
+          console.error("❌ Play error:", err);
+          setIsPlaying(false);
+          
+          // Auto-retry once after a user interaction
+          if (playAttempts < 1) {
+            console.log("Trying again after a short delay...");
+            setTimeout(playAudio, 500);
+          }
+        });
+    }
+  };
+  
   const togglePlay = () => {
-    setIsPlaying(!isPlaying);
+    if (isPlaying) {
+      audioRef.current?.pause();
+      setIsPlaying(false);
+    } else {
+      playAudio();
+    }
   };
   
   const handleVolumeChange = (e) => {
     setVolume(parseFloat(e.target.value));
-  };
-  
-  const handleEnded = () => {
-    setIsPlaying(false);
-    if (onEnded) onEnded();
   };
   
   return (
@@ -50,6 +141,7 @@ const AudioPlayer = ({ audioUrl, onEnded, autoPlay = false }) => {
         onClick={togglePlay}
         className="p-1 rounded-full hover:bg-aegeanBlue/10 transition-colors"
         title={isPlaying ? "Pause" : "Play"}
+        disabled={!audioUrl || !isReady}
       >
         {isPlaying ? (
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -77,11 +169,14 @@ const AudioPlayer = ({ audioUrl, onEnded, autoPlay = false }) => {
         />
       </div>
       
+      {!isReady && audioUrl && (
+        <span className="text-xs text-gray-500 animate-pulse">Loading audio...</span>
+      )}
+      
       <audio
         ref={audioRef}
-        src={audioUrl}
-        onEnded={handleEnded}
         className="hidden"
+        preload="auto"
       />
     </div>
   );

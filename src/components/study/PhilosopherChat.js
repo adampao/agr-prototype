@@ -6,6 +6,7 @@ import { generateSpeech } from '../../services/elevenLabsApi';
 import PhilosopherSwitch from './PhilosopherSwitchComponent';
 import { analyzeConversation, shouldSuggestPhilosopherSwitch } from './TopicDetectionService';
 import AudioPlayer from '../common/AudioPlayer';
+import SequentialAudioPlayer from '../common/SequentialAudioPlayer';
 
 const philosophers = [
   { 
@@ -129,25 +130,186 @@ const PhilosopherChat = () => {
   const messagesEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
   const [audioUrls, setAudioUrls] = useState({});
-const [isGeneratingAudio, setIsGeneratingAudio] = useState(false);
-const [voiceEnabled, setVoiceEnabled] = useState(true);
-const testNetlifyFunction = async () => {
-  try {
-    console.log("Testing speech generation...");
-    const testText = "This is a test of the speech generation system.";
-    const audioUrl = await generateSpeech(testText, selectedPhilosopher.id);
-    console.log("Test result:", audioUrl ? "SUCCESS" : "FAILED");
+  const [isGeneratingAudio, setIsGeneratingAudio] = useState(false);
+  const [voiceEnabled, setVoiceEnabled] = useState(true);
+  
+  // Generate audio for a specific message
+  const generateAudioForMessage = async (messageText, philosopherId, messageIndex) => {
+    console.log(`Generating audio for message index ${messageIndex}, philosopher: ${philosopherId}`);
+    setIsGeneratingAudio(true);
     
-    // Create an audio element and play it directly
-    if (audioUrl) {
-      const audio = new Audio(audioUrl);
-      audio.play();
+    try {
+      // Limit text length to avoid large requests
+      const speechText = messageText.length > 500 
+        ? messageText.substring(0, 500) + "..." 
+        : messageText;
+      
+      const audioUrl = await generateSpeech(speechText, philosopherId);
+      console.log(`Successfully generated audio for message ${messageIndex}:`, audioUrl ? "SUCCESS" : "FAILED");
+      
+      if (audioUrl) {
+        // Test the audio URL with a temporary Audio object
+        const testAudio = new Audio(audioUrl);
+        testAudio.volume = 0;
+        
+        try {
+          // Load metadata before setting in state
+          await new Promise((resolve, reject) => {
+            testAudio.addEventListener('loadedmetadata', resolve);
+            testAudio.addEventListener('error', (e) => reject(new Error(`Audio test failed: ${e}`)));
+            
+            // Set a timeout in case loading hangs
+            const timeout = setTimeout(() => {
+              reject(new Error('Audio metadata loading timed out'));
+            }, 3000);
+            
+            testAudio.addEventListener('loadedmetadata', () => {
+              clearTimeout(timeout);
+              resolve();
+            });
+          });
+          
+          console.log("Audio test successful, duration:", testAudio.duration);
+          
+          // Only set the URL after we've validated it works
+          setAudioUrls(prev => {
+            console.log("Setting audio URL for message index:", messageIndex);
+            return {
+              ...prev,
+              [messageIndex]: audioUrl
+            };
+          });
+          
+          return audioUrl;
+        } catch (testError) {
+          console.error("Audio test failed:", testError);
+          return null;
+        }
+      }
+    } catch (error) {
+      console.error(`Error generating audio for message ${messageIndex}:`, error);
+      return null;
+    } finally {
+      setIsGeneratingAudio(false);
     }
-  } catch (error) {
-    console.error("Test failed:", error);
-  }
-};
+  };
+  
+  const testNetlifyFunction = async () => {
+    try {
+      console.log("Testing speech generation...");
+      const testText = "This is a test of the speech generation system.";
+      
+      // First test with a short message
+      console.log("Generating test audio...");
+      const audioUrl = await generateSpeech(testText, selectedPhilosopher.id);
+      console.log("Test result:", audioUrl ? "SUCCESS" : "FAILED");
+      
+      if (audioUrl) {
+        // Create an audio element and play it with proper error handling
+        const audio = new Audio();
+        audio.src = audioUrl;
+        
+        // Add event listeners for debugging
+        audio.addEventListener('canplay', () => console.log("Test audio can play!"));
+        audio.addEventListener('error', (e) => console.error("Test audio error:", e));
+        
+        // Force user interaction to allow autoplay
+        audio.volume = 0.7;
+        
+        try {
+          await audio.play();
+          console.log("Test audio playback started!");
+        } catch (playError) {
+          console.error("Test audio playback failed:", playError);
+          
+          // Try again with user gesture handler
+          const handleUserGesture = () => {
+            audio.play()
+              .then(() => console.log("Audio playing after user gesture"))
+              .catch(err => console.error("Still failed after user gesture:", err));
+            document.removeEventListener('click', handleUserGesture);
+          };
+          
+          console.log("Waiting for user gesture to play audio...");
+          document.addEventListener('click', handleUserGesture);
+        }
+      }
+    } catch (error) {
+      console.error("Test completely failed:", error);
+    }
+  };
 
+  const formatMessageWithActions = (text) => {
+    // Find all action texts (text between asterisks)
+    const parts = [];
+    let lastIndex = 0;
+    const actionRegex = /\*([^*]+)\*/g;
+    let match;
+    
+    while ((match = actionRegex.exec(text)) !== null) {
+      // Add text before the action
+      if (match.index > lastIndex) {
+        parts.push(
+          <span key={`text-${lastIndex}`}>{text.substring(lastIndex, match.index)}</span>
+        );
+      }
+      
+      // Add the action text with special styling
+      parts.push(
+        <span 
+          key={`action-${match.index}`}
+          className="italic text-gray-500"
+        >
+          {match[1]}
+        </span>
+      );
+      
+      lastIndex = match.index + match[0].length;
+    }
+    
+    // Add any remaining text
+    if (lastIndex < text.length) {
+      parts.push(
+        <span key={`text-${lastIndex}`}>{text.substring(lastIndex)}</span>
+      );
+    }
+    
+    return parts.length > 0 ? parts : text;
+  };
+
+  // Debug function to show audio URL status
+  const debugAudioUrls = () => {
+    console.log("Current audio URLs:", audioUrls);
+    console.log("Messages count:", messages.length);
+    
+    // Find any mismatches
+    const messagesWithMissingAudio = messages
+      .map((msg, idx) => ({ msg, idx }))
+      .filter(({ msg, idx }) => 
+        msg.sender === 'philosopher' && !audioUrls[idx]
+      );
+      
+    console.log(
+      "Philosopher messages without audio:", 
+      messagesWithMissingAudio.length, 
+      messagesWithMissingAudio
+    );
+    
+    // Test playing the latest audio
+    if (messages.length > 0 && messages[messages.length-1].sender === 'philosopher') {
+      const latestAudioUrl = audioUrls[messages.length-1];
+      if (latestAudioUrl) {
+        console.log("Trying to play latest audio:", latestAudioUrl);
+        const audio = new Audio(latestAudioUrl);
+        audio.volume = 0.7;
+        audio.play()
+          .then(() => console.log("Playing audio successfully"))
+          .catch(err => console.error("Error playing audio:", err));
+      } else {
+        console.log("No audio URL for the latest message");
+      }
+    }
+  };
   
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -171,8 +333,7 @@ const testNetlifyFunction = async () => {
         
         if (useClaudeApi) {
           // Format previous messages for Claude API
-          const previousMessages = messages
-          .map(msg => {
+          const previousMessages = messages.map(msg => {
             // For all message types, create the appropriate format
             if (msg.sender === 'user') {
               return { role: 'user', content: msg.text };
@@ -185,48 +346,61 @@ const testNetlifyFunction = async () => {
             }
           });
         
-        
-
-        // Send to Claude API via our Netlify function
-        const response = await sendMessageToPhilosopher(
-          selectedPhilosopher.id, 
-          inputValue.trim(),
-          previousMessages
-        );
+          // Send to Claude API via our Netlify function
+          const response = await sendMessageToPhilosopher(
+            selectedPhilosopher.id, 
+            inputValue.trim(),
+            previousMessages
+          );
           
           philosopherResponse = response.response;
           
-          // Add philosopher message from Claude
-          setMessages(prevMessages => [
-            ...prevMessages, 
-            { 
-              sender: 'philosopher', 
-              philosopherId: selectedPhilosopher.id, 
-              text: philosopherResponse 
+          // IMPORTANT: First add the philosopher message to the messages array
+          // This ensures the message is added before we try to generate audio
+          setMessages(prevMessages => {
+            const updatedMessages = [
+              ...prevMessages, 
+              { 
+                sender: 'philosopher', 
+                philosopherId: selectedPhilosopher.id, 
+                text: philosopherResponse 
+              }
+            ];
+            
+            // Then generate audio after a small delay to ensure state is updated
+            if (voiceEnabled) {
+              const newMessageIndex = updatedMessages.length - 1;
+              
+              // Use setTimeout to ensure state update completes first
+              setTimeout(async () => {
+                try {
+                  setIsGeneratingAudio(true);
+                  console.log("Generating speech for:", philosopherResponse.substring(0, 50) + "...");
+                  
+                  // The updated generateSpeech now returns an array of audio URLs
+                  const audioUrlArray = await generateSpeech(philosopherResponse, selectedPhilosopher.id);
+                  console.log("Generated audio URLs:", audioUrlArray.length);
+                  
+                  if (audioUrlArray && audioUrlArray.length > 0) {
+                    // Store the array of URLs in state
+                    setAudioUrls(prev => {
+                      console.log("Setting audio URLs for message index:", newMessageIndex);
+                      return {
+                        ...prev,
+                        [newMessageIndex]: audioUrlArray
+                      };
+                    });
+                  }
+                } catch (error) {
+                  console.error('Error generating audio:', error);
+                } finally {
+                  setIsGeneratingAudio(false);
+                }
+              }, 100);
             }
-          ]);
-
-          if (voiceEnabled) {
-            setIsGeneratingAudio(true);
-            try {
-              console.log("Generating speech for:", philosopherResponse.substring(0, 50) + "...");
-    const newMessageIndex = messages.length; // Current length is the index of the message we just added
-    const audioUrl = await generateSpeech(philosopherResponse, selectedPhilosopher.id);
-    console.log("Audio URL generated:", audioUrl ? "SUCCESS" : "FAILED");
-    
-    setAudioUrls(prev => {
-      console.log("Setting audio URL for message index:", newMessageIndex);
-      return {
-        ...prev,
-        [newMessageIndex]: audioUrl
-      };
-    });
-  } catch (error) {
-    console.error('Error generating audio:', error);
-  } finally {
-    setIsGeneratingAudio(false);
-  }
-}
+            
+            return updatedMessages;
+          });
           
         } else {
           // Fallback to sample responses with a delay
@@ -300,8 +474,8 @@ const testNetlifyFunction = async () => {
 
             // Scroll to make sure the suggestion is visible
             setTimeout(() => {
-  messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-}, 1600);
+              messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+            }, 1600);
           }
         }
         
@@ -359,8 +533,6 @@ const testNetlifyFunction = async () => {
           text: `${selectedPhilosopher.name} has suggested continuing this discussion with ${newPhilosopher.name}, who has greater expertise in this area.`
         }
       ]);
-
-     
       
       // Switch to the new philosopher
       setSelectedPhilosopher(newPhilosopher);
@@ -381,14 +553,45 @@ const testNetlifyFunction = async () => {
             : '.'
         } As ${newPhilosopher.name}, I'd be happy to continue this dialogue from my perspective, drawing on my expertise in ${newPhilosopher.specialty}.`;
         
-        setMessages(prevMessages => [
-          ...prevMessages,
-          { 
-            sender: 'philosopher', 
-            philosopherId: newPhilosopher.id, 
-            text: contextMessage
+        setMessages(prevMessages => {
+          const updatedMessages = [
+            ...prevMessages,
+            { 
+              sender: 'philosopher', 
+              philosopherId: newPhilosopher.id, 
+              text: contextMessage
+            }
+          ];
+          
+          // Generate audio for the introduction message
+          if (voiceEnabled) {
+            const newMessageIndex = updatedMessages.length - 1;
+            setTimeout(async () => {
+              try {
+                setIsGeneratingAudio(true);
+                
+                // The updated generateSpeech now returns an array of audio URLs
+                const audioUrlArray = await generateSpeech(contextMessage, newPhilosopher.id);
+                
+                if (audioUrlArray && audioUrlArray.length > 0) {
+                  // Store the array of URLs in state
+                  setAudioUrls(prev => {
+                    return {
+                      ...prev,
+                      [newMessageIndex]: audioUrlArray
+                    };
+                  });
+                }
+              } catch (error) {
+                console.error('Error generating audio:', error);
+              } finally {
+                setIsGeneratingAudio(false);
+              }
+            }, 100);
           }
-        ]);
+          
+          return updatedMessages;
+        });
       }, 500);
     }
   };
@@ -458,6 +661,7 @@ const testNetlifyFunction = async () => {
               onClick={() => {
                 setSelectedPhilosopher(null);
                 setMessages([]);
+                setAudioUrls({});
               }}
               className="p-1 rounded-full hover:bg-white/20"
             >
@@ -488,20 +692,21 @@ const testNetlifyFunction = async () => {
                   {useClaudeApi ? "AI Mode" : "Demo Mode"}
                 </button>
                 <button 
-    onClick={() => setVoiceEnabled(!voiceEnabled)}
-    className={`text-xs p-1 rounded-md transition-colors ${
-      voiceEnabled ? 'bg-philosophicalPurple/20 text-philosophicalPurple' : 'bg-gray-200 text-gray-600'
-    }`}
-    title={voiceEnabled ? "Voice enabled" : "Voice disabled"}
-  >
-    {voiceEnabled ? "Voice On" : "Voice Off"}
-  </button>
-  <button
-  onClick={testNetlifyFunction}
-  className="text-xs p-1 rounded-md bg-terracotta/20 text-terracotta"
->
-  Test Voice
-</button>
+                  onClick={() => setVoiceEnabled(!voiceEnabled)}
+                  className={`text-xs p-1 rounded-md transition-colors ${
+                    voiceEnabled ? 'bg-philosophicalPurple/20 text-philosophicalPurple' : 'bg-gray-200 text-gray-600'
+                  }`}
+                  title={voiceEnabled ? "Voice enabled" : "Voice disabled"}
+                >
+                  {voiceEnabled ? "Voice On" : "Voice Off"}
+                </button>
+                <button
+                  onClick={testNetlifyFunction}
+                  className="text-xs p-1 rounded-md bg-terracotta/20 text-terracotta"
+                >
+                  Test Voice
+                </button>
+                
               </div>
             </div>
           </div>
@@ -542,21 +747,31 @@ const testNetlifyFunction = async () => {
                       }`}
                     >
                       {message.text.split('\n').map((text, i) => (
-                        <React.Fragment key={i}>
-                          {text}
-                          {i !== message.text.split('\n').length - 1 && <br />}
-                        </React.Fragment>
-                      ))}
+  <React.Fragment key={i}>
+    {formatMessageWithActions(text)}
+    {i !== message.text.split('\n').length - 1 && <br />}
+  </React.Fragment>
+))}
                       
                       {/* Add audio player for philosopher messages */}
                       {message.sender === 'philosopher' && audioUrls[index] && (
-                        <div className="mt-2 pt-2 border-t border-aegeanBlue/20">
-                          <AudioPlayer 
-                            audioUrl={audioUrls[index]} 
-                            autoPlay={index === messages.length - 1}
-                          />
-                        </div>
-                      )}
+  <div className="mt-2 pt-2 border-t border-aegeanBlue/20">
+    {Array.isArray(audioUrls[index]) ? (
+      <SequentialAudioPlayer 
+        audioUrls={audioUrls[index]} 
+        autoPlay={index === messages.length - 1}
+        key={`audio-${index}-${audioUrls[index].length}`}
+      />
+    ) : (
+      <AudioPlayer 
+        audioUrl={audioUrls[index]} 
+        autoPlay={index === messages.length - 1}
+        key={`audio-${index}-${typeof audioUrls[index] === 'string' ? audioUrls[index].substr(-10) : 0}`}
+      />
+    )}
+  </div>
+)}
+                      
                     </div>
                   </motion.div>
                 </AnimatePresence>
@@ -574,14 +789,14 @@ const testNetlifyFunction = async () => {
               </div>
             )}
             {/* Philosopher switch suggestion component */}
-<PhilosopherSwitch
-  isVisible={!!switchSuggestion}
-  suggestedPhilosopher={switchSuggestion?.suggestedPhilosopher}
-  currentPhilosopher={selectedPhilosopher?.name}
-  reason={switchSuggestion?.reason}
-  onAccept={handleAcceptSwitch}
-  onDecline={handleDeclineSwitch}
-/>
+            <PhilosopherSwitch
+              isVisible={!!switchSuggestion}
+              suggestedPhilosopher={switchSuggestion?.suggestedPhilosopher}
+              currentPhilosopher={selectedPhilosopher?.name}
+              reason={switchSuggestion?.reason}
+              onAccept={handleAcceptSwitch}
+              onDecline={handleDeclineSwitch}
+            />
             <div ref={messagesEndRef} />
           </div>
           
