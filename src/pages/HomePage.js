@@ -58,7 +58,7 @@ const HomePage = () => {
                 </Link>
               ) : (
                 <Link to="/onboarding">
-                  <Button size="lg">Begin Your Journey</Button>
+                  <Button size="lg">Try the Demo</Button>
                 </Link>
               )}
               <Button variant="outline" size="lg" onClick={() => {
