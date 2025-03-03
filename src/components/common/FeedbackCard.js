@@ -35,13 +35,13 @@ const FeedbackCard = () => {
       if (hasUsedFeatures && !hasGivenFeedback) {
         setTimeout(() => {
           setIsOpen(true);
-        }, 10000); // Show 10 seconds after using features
+        }, 60000); // Show 60 seconds after using features
       }
     };
     
     // Check initially and set up an interval to check periodically
     checkFeatureUsage();
-    const interval = setInterval(checkFeatureUsage, 30000); // Check every 30 seconds
+    const interval = setInterval(checkFeatureUsage, 300000); // Check every 300 seconds
     
     return () => clearInterval(interval);
   }, [hasGivenFeedback]);
@@ -105,7 +105,7 @@ const FeedbackCard = () => {
         {!isOpen && showTrigger && !hasGivenFeedback && (
           <motion.div
             initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
+            animate={{ opacity: 0.5, y: 0 }}
             exit={{ opacity: 0, y: 50 }}
             className="fixed bottom-4 right-4 z-50"
           >
