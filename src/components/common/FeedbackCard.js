@@ -13,12 +13,28 @@ const FeedbackCard = ({ openFromFooter = false }) => {
   const [hasGivenFeedback, setHasGivenFeedback] = useState(hasFeedback());
   const [showTrigger, setShowTrigger] = useState(false);
   
-  // If triggered from another component via window variable
+  // Create a global event listener for opening the feedback card
   useEffect(() => {
+    // Define a custom event handler
+    const handleOpenFeedback = () => {
+      console.log("FeedbackCard: received openFeedback event");
+      setIsOpen(true);
+    };
+    
+    // Add event listener for a custom event
+    window.addEventListener('openFeedback', handleOpenFeedback);
+    
+    // Legacy check for direct flag setting
     if (window.openFeedbackCard) {
+      console.log("FeedbackCard: detected openFeedbackCard flag");
       setIsOpen(true);
       window.openFeedbackCard = false;
     }
+    
+    // Cleanup
+    return () => {
+      window.removeEventListener('openFeedback', handleOpenFeedback);
+    };
   }, []);
   
   // If openFromFooter prop changes, open the feedback card

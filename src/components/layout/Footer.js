@@ -7,7 +7,6 @@ import Button from '../common/Button';
 const Footer = () => {
   const location = useLocation();
   const [isOnboardingPage, setIsOnboardingPage] = useState(false);
-  const [openFeedbackForm, setOpenFeedbackForm] = useState(false);
   const [aboutModalOpen, setAboutModalOpen] = useState(false);
 
   useEffect(() => {
@@ -21,9 +20,10 @@ const Footer = () => {
   }
 
   const openFeedbackModal = () => {
-    // Trigger the global feedback form to open
-    setOpenFeedbackForm(prev => !prev); // Toggle to force re-render
-    window.openFeedbackCard = true;
+    // Dispatch a custom event to trigger the feedback card
+    console.log("Footer: dispatching openFeedback event");
+    const event = new Event('openFeedback');
+    window.dispatchEvent(event);
   };
   
   const openAboutModal = () => {
