@@ -65,8 +65,8 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'signin' }) => {
   if (!isOpen) return null;
   
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6 relative">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-4 sm:p-6 relative">
         <button 
           onClick={handleClose}
           className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
@@ -137,11 +137,11 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'signin' }) => {
             </p>
           </div>
           
-          <div className="flex items-center justify-between pt-2">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-2">
             <button
               type="submit"
               disabled={loading}
-              className="px-6 py-2 bg-oliveGold text-white rounded-md hover:bg-oliveGold/90 transition-colors disabled:opacity-50"
+              className="w-full sm:w-auto px-6 py-3 bg-oliveGold text-white rounded-md hover:bg-oliveGold/90 transition-colors disabled:opacity-50 text-base"
             >
               {loading ? 'Processing...' : mode === 'signin' ? 'Sign In' : 'Create Account'}
             </button>
@@ -149,7 +149,7 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'signin' }) => {
             <button
               type="button"
               onClick={() => setMode(mode === 'signin' ? 'signup' : 'signin')}
-              className="text-sm text-aegeanBlue hover:text-aegeanBlue/70"
+              className="text-sm text-aegeanBlue hover:text-aegeanBlue/70 py-2"
             >
               {mode === 'signin' ? 'Create an account' : 'Already have an account?'}
             </button>

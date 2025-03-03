@@ -172,8 +172,8 @@ const JournalEntry = ({ entry, onSaveReflection, onDelete, initiallyExpanded = f
                 </div>
               </div>
             ) : (
-              <div className="flex justify-between mt-4 relative z-10">
-              <div className="space-x-2 relative z-10">
+              <div className="flex flex-col sm:flex-row justify-between mt-4 relative z-10 gap-3 sm:gap-0">
+              <div className="flex flex-wrap gap-2 sm:space-x-2 relative z-10">
                 {!entry.reflection && (
                   <Button 
                     variant="outline" 

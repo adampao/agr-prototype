@@ -171,7 +171,7 @@ const Header = () => {
                   </div>
                   <button 
                     onClick={handleSignOut}
-                    className="block w-full text-left pl-3 pr-4 py-2 text-base font-medium text-aegeanBlue/70"
+                    className="block w-full text-left pl-3 pr-4 py-3 text-base font-medium text-aegeanBlue/70 hover:bg-aegeanBlue/10 rounded-md mb-1"
                   >
                     Sign Out
                   </button>
@@ -180,13 +180,13 @@ const Header = () => {
                 <>
                   <button 
                     onClick={openSignIn}
-                    className="block w-full text-left pl-3 pr-4 py-2 text-base font-medium text-aegeanBlue/70"
+                    className="block w-full text-left pl-3 pr-4 py-3 text-base font-medium text-aegeanBlue/70 hover:bg-aegeanBlue/10 rounded-md mb-1"
                   >
                     Sign In
                   </button>
                   <button 
                     onClick={openSignUp}
-                    className="block w-full text-left pl-3 pr-4 py-2 text-base font-medium text-aegeanBlue/70"
+                    className="block w-full text-left pl-3 pr-4 py-3 text-base font-medium bg-aegeanBlue/10 text-aegeanBlue font-medium rounded-md"
                   >
                     Create Account
                   </button>
