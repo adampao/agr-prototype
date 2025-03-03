@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import Card from '../common/Card';
 import Button from '../common/Button';
 import PhilosopherDebate from './PhilosopherDebate';
+import { useAuth } from '../../services/AuthContext';
 
 // Sample debate topics for the prototype
 const sampleDebates = [

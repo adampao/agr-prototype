@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Button from '../common/Button';
 import { sendMessageToPhilosopher } from '../../services/claudeApi';
 import PhilosopherSwitch from '../study/PhilosopherSwitchComponent';
+import { useAuth } from '../../services/AuthContext';
 
 // Import philosophers data (same as used in PhilosopherChat.js)
 const philosophers = [
@@ -109,6 +110,7 @@ const debateTopics = [
 ];
 
 const PhilosopherDebate = () => {
+  const { currentUser, updateUserProfile } = useAuth();
   const [philosopher1, setPhilosopher1] = useState(null);
   const [philosopher2, setPhilosopher2] = useState(null);
   const [philosopher3, setPhilosopher3] = useState(null); // Add the third philosopher
@@ -129,6 +131,95 @@ const PhilosopherDebate = () => {
   });
   const [hasVoted, setHasVoted] = useState(false);  // Add this state to track if user has voted
   const [componentKey, setComponentKey] = useState(0);
+  const [pointsAwarded, setPointsAwarded] = useState(false);
+  const [achievementUnlocked, setAchievementUnlocked] = useState(null);
+  
+  // Achievement definitions
+  const achievements = [
+    { 
+      id: 'sophia_novice',
+      name: 'Wisdom Novice', 
+      description: 'Accumulated 5 Sophia Points on your philosophical journey',
+      icon: '🔍',
+      threshold: 5
+    },
+    {
+      id: 'sophia_seeker',
+      name: 'Wisdom Seeker',
+      description: 'Accumulated 10 Sophia Points through philosophical inquiry',
+      icon: '🦉',
+      threshold: 10
+    }
+  ];
+
+  // Check for unlocked achievements based on points
+  const checkAchievements = (points) => {
+    if (!currentUser || !currentUser.achievements) return null;
+    
+    // Get list of achievement IDs user already has
+    const userAchievementIds = currentUser.achievements.map(a => a.id);
+    
+    // Find achievements that should be unlocked but user doesn't have yet
+    const newAchievements = achievements.filter(achievement => 
+      points >= achievement.threshold && 
+      !userAchievementIds.includes(achievement.id)
+    );
+    
+    return newAchievements.length > 0 ? newAchievements[0] : null;
+  };
+  
+  // Function to award Sophia points to the user
+  const awardSophiaPoints = (points = 1) => {
+    if (currentUser) {
+      // Calculate new points total
+      const newTotal = (currentUser.stats.sophiaPoints || 0) + points;
+      
+      // Check for achievements
+      const newAchievement = checkAchievements(newTotal);
+      
+      // Build updated user object
+      let updatedUser = {
+        ...currentUser,
+        stats: {
+          ...currentUser.stats,
+          sophiaPoints: newTotal
+        }
+      };
+      
+      // Add achievement if earned
+      if (newAchievement) {
+        const achievementToAdd = {
+          ...newAchievement,
+          date: new Date().toISOString()
+        };
+        
+        updatedUser = {
+          ...updatedUser,
+          achievements: [
+            ...(currentUser.achievements || []),
+            achievementToAdd
+          ]
+        };
+        
+        // Show achievement notification
+        setAchievementUnlocked(newAchievement);
+        
+        // Clear achievement notification after a delay
+        setTimeout(() => {
+          setAchievementUnlocked(null);
+        }, 8000);
+      }
+      
+      // Update user profile
+      updateUserProfile(updatedUser);
+      setPointsAwarded(true);
+      
+      // Reset the points awarded flag after a few seconds
+      setTimeout(() => {
+        setPointsAwarded(false);
+      }, 5000);
+    }
+  };
  
   
   const messagesEndRef = useRef(null);
@@ -323,6 +414,11 @@ setCurrentTurn(nextTurn);
 
   // Function to handle voting
 const handleVote = (philosopherId) => {
+  // Award Sophia points for voting in a debate
+  if (currentUser && !hasVoted) {
+    awardSophiaPoints(1);
+  }
+  
   setVotes(prevVotes => ({
     ...prevVotes,
     [philosopherId]: (prevVotes[philosopherId] || 0) + 1
@@ -1045,6 +1141,43 @@ Please provide a brief introduction (about 100 words) explaining your perspectiv
   onAccept={() => handlePhilosopherSwitch(switchSuggestion)}
   onDecline={() => setSwitchSuggestion(null)}
 />
+
+{/* Points awarded notification */}
+<AnimatePresence>
+  {pointsAwarded && (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      className="fixed top-4 right-4 bg-oliveGold/10 border border-oliveGold/30 text-oliveGold rounded-lg p-3 flex items-center shadow-lg z-20 max-w-xs"
+    >
+      <span className="text-xl mr-2">✨</span>
+      <div>
+        <p className="font-medium text-sm">+2 Sophia Points</p>
+        <p className="text-xs">For philosophical debate</p>
+      </div>
+    </motion.div>
+  )}
+</AnimatePresence>
+
+{/* Achievement unlocked notification */}
+<AnimatePresence>
+  {achievementUnlocked && (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      className="fixed top-20 right-4 bg-philosophicalPurple/10 border border-philosophicalPurple/30 text-philosophicalPurple rounded-lg p-3 shadow-lg z-20 max-w-xs"
+    >
+      <div className="flex items-center mb-1">
+        <div className="text-2xl mr-2">{achievementUnlocked.icon}</div>
+        <h4 className="font-serif font-semibold">Achievement Unlocked!</h4>
+      </div>
+      <p className="font-medium text-sm">{achievementUnlocked.name}</p>
+      <p className="text-xs text-philosophicalPurple/80">{achievementUnlocked.description}</p>
+    </motion.div>
+  )}
+</AnimatePresence>
 
 {/* Voting UI */}
 {debateStage === 'conclusion' && 
