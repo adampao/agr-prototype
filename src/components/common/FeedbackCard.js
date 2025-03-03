@@ -13,13 +13,13 @@ const FeedbackCard = () => {
   const [hasGivenFeedback, setHasGivenFeedback] = useState(hasFeedback());
   const [showTrigger, setShowTrigger] = useState(false);
   
-  // Only show the feedback trigger after the user has been on the site for a minute
+  // Only show the feedback trigger after the user has been on the site for 3 minutes
   useEffect(() => {
     const timer = setTimeout(() => {
       if (!hasGivenFeedback) {
         setShowTrigger(true);
       }
-    }, 60000); // 60 seconds
+    }, 180000); // 3 minutes (was 60 seconds)
     
     return () => clearTimeout(timer);
   }, [hasGivenFeedback]);
@@ -35,15 +35,18 @@ const FeedbackCard = () => {
       if (hasUsedFeatures && !hasGivenFeedback) {
         setTimeout(() => {
           setIsOpen(true);
-        }, 60000); // Show 60 seconds after using features
+        }, 300000); // Show 5 minutes after using features (was 60 seconds)
       }
     };
     
-    // Check initially and set up an interval to check periodically
-    checkFeatureUsage();
-    const interval = setInterval(checkFeatureUsage, 300000); // Check every 300 seconds
+    // Check after a delay and set up an interval to check less frequently
+    const initialTimer = setTimeout(checkFeatureUsage, 300000); // First check after 5 minutes
+    const interval = setInterval(checkFeatureUsage, 900000); // Check every 15 minutes (was 5 minutes)
     
-    return () => clearInterval(interval);
+    return () => {
+      clearTimeout(initialTimer);
+      clearInterval(interval);
+    };
   }, [hasGivenFeedback]);
   
   const handleSubmit = async (e) => {
@@ -107,14 +110,14 @@ const FeedbackCard = () => {
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 0.5, y: 0 }}
             exit={{ opacity: 0, y: 50 }}
-            className="fixed bottom-4 right-4 z-50"
+            className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 w-auto"
           >
             <button
               onClick={() => setIsOpen(true)}
-              className="bg-oliveGold hover:bg-oliveGold/90 text-white px-4 py-2 rounded-full flex items-center shadow-lg transition-colors"
+              className="bg-oliveGold/70 hover:bg-oliveGold/90 text-white px-4 py-2 rounded-full flex items-center shadow-lg transition-colors backdrop-blur-sm"
             >
               <span className="mr-2">💬</span>
-              Share Your Thoughts
+              <span className="whitespace-nowrap">Share Your Thoughts</span>
             </button>
           </motion.div>
         )}
