@@ -40,8 +40,8 @@ const FeedbackCard = () => {
     };
     
     // Check after a delay and set up an interval to check less frequently
-    const initialTimer = setTimeout(checkFeatureUsage, 300000); // First check after 5 minutes
-    const interval = setInterval(checkFeatureUsage, 900000); // Check every 15 minutes (was 5 minutes)
+    const initialTimer = setTimeout(checkFeatureUsage, 60000); // First check after 1 minute
+    const interval = setInterval(checkFeatureUsage, 600000); // Check every 10 minutes
     
     return () => {
       clearTimeout(initialTimer);
