@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import Card from '../common/Card';
 import Button from '../common/Button';
-import DebateArena from './DebateArena';
 
 // Sample symposiums (discussion groups) for the prototype
 const sampleSymposiums = [
@@ -41,7 +40,7 @@ const sampleSymposiums = [
 ];
 
 const Community = () => {
-  const [activeTab, setActiveTab] = useState('debates');
+  const [activeTab, setActiveTab] = useState('explore');
   const [filter, setFilter] = useState('all');
   
   const filteredSymposiums = sampleSymposiums.filter(symposium => {
@@ -83,16 +82,6 @@ const Community = () => {
       onClick={() => setActiveTab('my')}
     >
       My Symposiums
-    </button>
-    <button
-      className={`pb-4 font-medium text-lg border-b-2 ${
-        activeTab === 'debates'
-          ? 'border-oliveGold text-aegeanBlue'
-          : 'border-transparent text-aegeanBlue/60 hover:text-aegeanBlue hover:border-aegeanBlue/30'
-      }`}
-      onClick={() => setActiveTab('debates')}
-    >
-      Philosophical Debates
     </button>
   </div>
 </div>
@@ -178,8 +167,6 @@ const Community = () => {
             ))}
           </div>
         </>
-      ) : activeTab === 'debates' ? (
-        <DebateArena />
       ) : (
         <div className="text-center py-12">
           <div className="text-6xl mb-4">🏛️</div>

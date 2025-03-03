@@ -16,16 +16,16 @@ const AgoraPage = () => {
           </h1>
           <div className="flex space-x-2">
             <Button 
-              variant={activeTab === 'community' ? 'primary' : 'outline'} 
-              onClick={() => setActiveTab('community')}
-            >
-              Symposiums
-            </Button>
-            <Button 
               variant={activeTab === 'debates' ? 'primary' : 'outline'}
               onClick={() => setActiveTab('debates')}
             >
               Debates
+            </Button>
+            <Button 
+              variant={activeTab === 'community' ? 'primary' : 'outline'} 
+              onClick={() => setActiveTab('community')}
+            >
+              Symposiums
             </Button>
           </div>
         </div>
