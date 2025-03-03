@@ -5,7 +5,7 @@ import DebateArena from '../components/agora/DebateArena';
 import Button from '../components/common/Button';
 
 const AgoraPage = () => {
-  const [activeTab, setActiveTab] = useState('community');
+  const [activeTab, setActiveTab] = useState('debates');
   
   return (
     <Layout>
