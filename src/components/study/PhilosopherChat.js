@@ -194,50 +194,6 @@ const PhilosopherChat = () => {
     }
   };
   
-  const testNetlifyFunction = async () => {
-    try {
-      console.log("Testing speech generation...");
-      const testText = "This is a test of the speech generation system.";
-      
-      // First test with a short message
-      console.log("Generating test audio...");
-      const audioUrl = await generateSpeech(testText, selectedPhilosopher.id);
-      console.log("Test result:", audioUrl ? "SUCCESS" : "FAILED");
-      
-      if (audioUrl) {
-        // Create an audio element and play it with proper error handling
-        const audio = new Audio();
-        audio.src = audioUrl;
-        
-        // Add event listeners for debugging
-        audio.addEventListener('canplay', () => console.log("Test audio can play!"));
-        audio.addEventListener('error', (e) => console.error("Test audio error:", e));
-        
-        // Force user interaction to allow autoplay
-        audio.volume = 0.7;
-        
-        try {
-          await audio.play();
-          console.log("Test audio playback started!");
-        } catch (playError) {
-          console.error("Test audio playback failed:", playError);
-          
-          // Try again with user gesture handler
-          const handleUserGesture = () => {
-            audio.play()
-              .then(() => console.log("Audio playing after user gesture"))
-              .catch(err => console.error("Still failed after user gesture:", err));
-            document.removeEventListener('click', handleUserGesture);
-          };
-          
-          console.log("Waiting for user gesture to play audio...");
-          document.addEventListener('click', handleUserGesture);
-        }
-      }
-    } catch (error) {
-      console.error("Test completely failed:", error);
-    }
-  };
 
   const formatMessageWithActions = (text) => {
     // Find all action texts (text between asterisks)
@@ -540,26 +496,74 @@ const PhilosopherChat = () => {
       // Clear the suggestion
       setSwitchSuggestion(null);
       
-      // Create a contextual introduction from the new philosopher
-      // Wait a short moment to ensure UI updates
-      setTimeout(() => {
-        const contextMessage = `I understand you were discussing ${
-          recentUserMessages.length > 0 
-            ? `"${recentUserMessages.join('" and "')}"` 
-            : 'philosophical matters'
-        } with ${selectedPhilosopher.name}${
-          recentPhilosopherMessages.length > 0 
-            ? `, who mentioned that ${recentPhilosopherMessages[0].split('.')[0]}.` 
-            : '.'
-        } As ${newPhilosopher.name}, I'd be happy to continue this dialogue from my perspective, drawing on my expertise in ${newPhilosopher.specialty}.`;
+      // Get the most recent user message to potentially answer
+      const mostRecentUserMessage = recentUserMessages.length > 0 ? recentUserMessages[recentUserMessages.length - 1] : '';
+      
+      // Create a contextual introduction from the new philosopher 
+      // and potentially answer the user's question in the same message
+      setTimeout(async () => {
+        // Create array of greeting templates
+        const greetingTemplates = [
+          `Greetings, I am ${newPhilosopher.name}. I notice you've been exploring ideas with my colleague. I'd be delighted to offer my perspective, particularly drawing on my knowledge of ${newPhilosopher.specialty}.`,
+          
+          `I see you seek wisdom from different angles. As ${newPhilosopher.name}, I bring my own unique approach to these questions, shaped by my focus on ${newPhilosopher.specialty}.`,
+          
+          `Ah, an inquiring mind! I've been summoned to continue this philosophical journey. As ${newPhilosopher.name}, I may illuminate different aspects with my expertise in ${newPhilosopher.specialty}.`,
+          
+          `I have been called to join this dialogue. ${newPhilosopher.name} at your service, ready to explore these ideas through the lens of ${newPhilosopher.specialty}.`,
+          
+          `The path of wisdom often requires many guides. I am ${newPhilosopher.name}, and I'm pleased to join this conversation with my insights on ${newPhilosopher.specialty}.`
+        ];
         
+        // Select a random greeting template
+        const randomIndex = Math.floor(Math.random() * greetingTemplates.length);
+        let introMessage = greetingTemplates[randomIndex];
+        
+        // If there's a recent user message to address and we're using the Claude API
+        if (mostRecentUserMessage && useClaudeApi) {
+          try {
+            setIsProcessing(true);
+            
+            // Format previous messages excluding the most recent philosopher switch messages
+            const previousMessages = messages
+              .filter(msg => !(msg.sender === 'system' && msg.text.includes('continuing this discussion with')))
+              .slice(0, -1) // Remove the system message about the switch
+              .map(msg => {
+                if (msg.sender === 'user') {
+                  return { role: 'user', content: msg.text };
+                } else if (msg.sender === 'system') {
+                  return { role: 'assistant', content: `[System: ${msg.text}]` };
+                } else {
+                  return { role: 'assistant', content: msg.text };
+                }
+              });
+            
+            // Generate a direct answer to the user's question
+            const response = await sendMessageToPhilosopher(
+              newPhilosopher.id,
+              mostRecentUserMessage,
+              previousMessages
+            );
+            
+            // Combine the introduction with the answer
+            introMessage = `${introMessage}\n\nRegarding your question: ${response.response}`;
+            
+          } catch (error) {
+            console.error('Error getting philosopher response for intro:', error);
+            // Just use the intro message if there's an error
+          } finally {
+            setIsProcessing(false);
+          }
+        }
+        
+        // Add the message to the chat
         setMessages(prevMessages => {
           const updatedMessages = [
             ...prevMessages,
             { 
               sender: 'philosopher', 
               philosopherId: newPhilosopher.id, 
-              text: contextMessage
+              text: introMessage
             }
           ];
           
@@ -571,7 +575,7 @@ const PhilosopherChat = () => {
                 setIsGeneratingAudio(true);
                 
                 // The updated generateSpeech now returns an array of audio URLs
-                const audioUrlArray = await generateSpeech(contextMessage, newPhilosopher.id);
+                const audioUrlArray = await generateSpeech(introMessage, newPhilosopher.id);
                 
                 if (audioUrlArray && audioUrlArray.length > 0) {
                   // Store the array of URLs in state
@@ -700,13 +704,6 @@ const PhilosopherChat = () => {
                 >
                   {voiceEnabled ? "Voice On" : "Voice Off"}
                 </button>
-                <button
-                  onClick={testNetlifyFunction}
-                  className="text-xs p-1 rounded-md bg-terracotta/20 text-terracotta"
-                >
-                  Test Voice
-                </button>
-                
               </div>
             </div>
           </div>
