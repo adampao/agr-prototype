@@ -1,12 +1,13 @@
 import axios from 'axios';
 
 // Function to interact with our Netlify function that calls Claude
-export const sendMessageToPhilosopher = async (philosopherId, message, previousMessages = []) => {
+export const sendMessageToPhilosopher = async (philosopherId, message, previousMessages = [], userContext = "") => {
   try {
     const response = await axios.post('/.netlify/functions/claude-chat', {
       prompt: message,
       philosopherId,
-      previousMessages
+      previousMessages,
+      userContext
     });
     
     return response.data;

@@ -12,7 +12,7 @@ exports.handler = async function(event, context) {
   try {
     // Parse the incoming request body
     const requestBody = JSON.parse(event.body);
-    const { prompt, philosopherId, previousMessages = [] } = requestBody;
+    const { prompt, philosopherId, previousMessages = [], userContext = "" } = requestBody;
     
     if (!prompt || !philosopherId) {
       return {
@@ -127,7 +127,9 @@ If asked about something beyond your time, politely acknowledge this limitation 
 Your areas of special expertise include:
 ${Object.entries(philosopherExpertise[philosopherId] || {})
   .map(([area, reasons]) => `- ${area} ${reasons[0]}`)
-  .join('\n')}`;
+  .join('\n')}
+
+${userContext ? `\nAdditional context: ${userContext}` : ''}`;
     
     const basePrompt = philosopherBasePersonas[philosopherId] || 
       "You are an ancient Greek philosopher having a thoughtful dialogue with the user.";

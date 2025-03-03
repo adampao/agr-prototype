@@ -7,6 +7,7 @@ import PhilosopherSwitch from './PhilosopherSwitchComponent';
 import { analyzeConversation, shouldSuggestPhilosopherSwitch } from './TopicDetectionService';
 import AudioPlayer from '../common/AudioPlayer';
 import SequentialAudioPlayer from '../common/SequentialAudioPlayer';
+import { useAuth } from '../../services/AuthContext';
 
 const philosophers = [
   { 
@@ -118,9 +119,11 @@ const sampleResponses = {
 };
 
 const PhilosopherChat = () => {
+  const { currentUser, updateUserProfile } = useAuth();
   const [selectedPhilosopher, setSelectedPhilosopher] = useState(null);
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState('');
+  const [userGreeted, setUserGreeted] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [hoveredPhilosopher, setHoveredPhilosopher] = useState(null);
   const [useClaudeApi, setUseClaudeApi] = useState(true); // Toggle between sample responses and Claude API
@@ -131,7 +134,28 @@ const PhilosopherChat = () => {
   const messagesContainerRef = useRef(null);
   const [audioUrls, setAudioUrls] = useState({});
   const [isGeneratingAudio, setIsGeneratingAudio] = useState(false);
-  const [voiceEnabled, setVoiceEnabled] = useState(true);
+  const [voiceEnabled, setVoiceEnabled] = useState(false);
+  const [pointsAwarded, setPointsAwarded] = useState(false);
+  
+  // Function to award Sophia points to the user
+  const awardSophiaPoints = (points = 1) => {
+    if (currentUser) {
+      const updatedUser = {
+        ...currentUser,
+        stats: {
+          ...currentUser.stats,
+          sophiaPoints: (currentUser.stats.sophiaPoints || 0) + points
+        }
+      };
+      updateUserProfile(updatedUser);
+      setPointsAwarded(true);
+      
+      // Reset the points awarded flag after a few seconds
+      setTimeout(() => {
+        setPointsAwarded(false);
+      }, 5000);
+    }
+  };
   
   // Generate audio for a specific message
   const generateAudioForMessage = async (messageText, philosopherId, messageIndex) => {
@@ -275,6 +299,36 @@ const PhilosopherChat = () => {
     scrollToBottom();
   }, [messages]);
   
+  // Effect to greet the user with their name when a philosopher is selected
+  useEffect(() => {
+    if (selectedPhilosopher && currentUser && !userGreeted && messages.length === 0) {
+      const userName = currentUser.name || "seeker of wisdom";
+      const greetingText = `Greetings, ${userName}. I am ${selectedPhilosopher.name}. How may I assist you on your philosophical journey today?`;
+      
+      setMessages([{ 
+        sender: 'philosopher', 
+        philosopherId: selectedPhilosopher.id, 
+        text: greetingText 
+      }]);
+      
+      setUserGreeted(true);
+      
+      // Generate audio for greeting if voice is enabled
+      if (voiceEnabled) {
+        setTimeout(async () => {
+          try {
+            const audioUrlArray = await generateSpeech(greetingText, selectedPhilosopher.id);
+            if (audioUrlArray && audioUrlArray.length > 0) {
+              setAudioUrls(prev => ({ ...prev, [0]: audioUrlArray }));
+            }
+          } catch (error) {
+            console.error('Error generating greeting audio:', error);
+          }
+        }, 100);
+      }
+    }
+  }, [selectedPhilosopher, currentUser, userGreeted, messages.length, voiceEnabled]);
+
   const handleSendMessage = async () => {
     if (inputValue.trim() && selectedPhilosopher) {
       // Add user message
@@ -283,6 +337,11 @@ const PhilosopherChat = () => {
       setInputValue('');
       setIsProcessing(true);
       setApiError(null);
+      
+      // Award Sophia points for interacting with philosophers (once per session)
+      if (!pointsAwarded && currentUser) {
+        awardSophiaPoints(1);
+      }
       
       try {
         let philosopherResponse = "";
@@ -301,12 +360,22 @@ const PhilosopherChat = () => {
               return { role: 'assistant', content: msg.text };
             }
           });
+          
+          // Include user info in system message for Claude
+          let userContext = "";
+          if (currentUser) {
+            userContext = `You are speaking to ${currentUser.name || "a seeker of wisdom"}. `;
+            if (currentUser.preferences && currentUser.preferences.interests && currentUser.preferences.interests.length > 0) {
+              userContext += `Their philosophical interests include: ${currentUser.preferences.interests.join(", ")}. `;
+            }
+          }
         
           // Send to Claude API via our Netlify function
           const response = await sendMessageToPhilosopher(
             selectedPhilosopher.id, 
             inputValue.trim(),
-            previousMessages
+            previousMessages,
+            userContext
           );
           
           philosopherResponse = response.response;
@@ -805,6 +874,23 @@ const PhilosopherChat = () => {
               onAccept={handleAcceptSwitch}
               onDecline={handleDeclineSwitch}
             />
+            
+            {/* Points awarded notification */}
+            {pointsAwarded && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="bg-oliveGold/10 border border-oliveGold/30 text-oliveGold rounded-lg p-3 mb-4 flex items-center"
+              >
+                <span className="text-2xl mr-2">✨</span>
+                <div>
+                  <p className="font-medium">+1 Sophia Point Awarded!</p>
+                  <p className="text-sm">For philosophical dialogue with {selectedPhilosopher?.name}</p>
+                </div>
+              </motion.div>
+            )}
+            
             <div ref={messagesEndRef} />
           </div>
           
