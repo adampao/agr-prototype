@@ -1,12 +1,57 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 
 const Footer = () => {
-  // Skip footer on onboarding flow
-  const isOnboardingPage = window.location.pathname.includes('/onboarding');
+  const location = useLocation();
+  const [isOnboardingPage, setIsOnboardingPage] = useState(false);
+  const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
+  const [formSubmitted, setFormSubmitted] = useState(false);
+
+  useEffect(() => {
+    // Check if we're on the onboarding page
+    setIsOnboardingPage(location.pathname.includes('/onboarding'));
+  }, [location]);
+
+  // Skip rendering footer on onboarding flow
   if (isOnboardingPage) {
     return null;
   }
+
+  const openFeedbackModal = () => {
+    setFeedbackModalOpen(true);
+  };
+
+  const closeFeedbackModal = () => {
+    setFeedbackModalOpen(false);
+    // Reset the form submission status after some time
+    setTimeout(() => {
+      setFormSubmitted(false);
+    }, 1000);
+  };
+  
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    
+    // Get form data
+    const form = e.target;
+    const data = new FormData(form);
+    
+    // Submit the form to Netlify
+    fetch('/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams(data).toString(),
+    })
+      .then(() => {
+        console.log('Form successfully submitted');
+        setFormSubmitted(true);
+        // Close the modal after a slight delay
+        setTimeout(() => {
+          closeFeedbackModal();
+        }, 2000);
+      })
+      .catch((error) => console.log('Form submission error:', error));
+  };
 
   return (
     <footer className="bg-marbleWhite border-t border-aegeanBlue/10 py-8">
@@ -26,7 +71,7 @@ const Footer = () => {
               Terms
             </Link>
             <button 
-              onClick={() => document.getElementById('feedback-modal').showModal()}
+              onClick={openFeedbackModal}
               className="text-aegeanBlue hover:text-aegeanBlue/80 cursor-pointer"
             >
               Feedback
@@ -42,82 +87,109 @@ const Footer = () => {
       </div>
       
       {/* Feedback Modal */}
-      <dialog id="feedback-modal" className="modal p-0 rounded-lg shadow-elegant max-w-md w-full bg-white">
-        <div className="p-6">
-          <h3 className="text-2xl font-serif font-bold text-aegeanBlue mb-4">Share Your Feedback</h3>
-          <p className="text-aegeanBlue/80 mb-6">
-            We value your thoughts and suggestions to improve The Oikosystem. Please share your experience with us.
-          </p>
-          
-          <form name="feedback" method="POST" data-netlify="true" className="space-y-4">
-            <input type="hidden" name="form-name" value="feedback" />
+      {feedbackModalOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6 relative">
+            <button 
+              onClick={closeFeedbackModal}
+              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+              aria-label="Close"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
             
-            <p>
-              <label className="block text-sm font-medium text-aegeanBlue/70 mb-1">
-                Email
-                <input 
-                  type="email" 
-                  name="email" 
-                  required
-                  className="w-full mt-1 px-4 py-2 border border-aegeanBlue/20 rounded-md focus:ring-2 focus:ring-oliveGold/50 focus:border-oliveGold outline-none"
-                  placeholder="you@example.com"
-                />
-              </label>
-            </p>
-            
-            <p>
-              <label className="block text-sm font-medium text-aegeanBlue/70 mb-1">
-                What feature did you like most?
-                <input 
-                  type="text" 
-                  name="liked-feature"
-                  className="w-full mt-1 px-4 py-2 border border-aegeanBlue/20 rounded-md focus:ring-2 focus:ring-oliveGold/50 focus:border-oliveGold outline-none"
-                  placeholder="Study, Journal, Agora..."
-                />
-              </label>
-            </p>
-            
-            <p>
-              <label className="block text-sm font-medium text-aegeanBlue/70 mb-1">
-                Your Feedback
-                <textarea 
-                  name="feedback-text"
-                  required
-                  rows="4"
-                  className="w-full mt-1 px-4 py-2 border border-aegeanBlue/20 rounded-md focus:ring-2 focus:ring-oliveGold/50 focus:border-oliveGold outline-none resize-none"
-                  placeholder="Please share your thoughts, suggestions or issues..."
-                ></textarea>
-              </label>
-            </p>
-            
-            <p className="flex items-start">
-              <label className="flex items-start">
-                <input
-                  name="contact-ok"
-                  type="checkbox"
-                  className="h-4 w-4 mt-1 text-oliveGold border-aegeanBlue/20 rounded focus:ring-oliveGold/50"
-                />
-                <span className="ml-3 text-sm text-aegeanBlue/70">
-                  It's okay to contact me about my feedback
-                </span>
-              </label>
-            </p>
-            
-            <div className="flex gap-3 justify-end">
-              <button 
-                type="button"
-                className="px-4 py-2 text-aegeanBlue hover:bg-aegeanBlue/5 rounded-md transition-colors"
-                onClick={() => document.getElementById('feedback-modal').close()}
-              >
-                Cancel
-              </button>
-              <button type="submit" className="px-4 py-2 bg-oliveGold text-white rounded-md hover:bg-oliveGold/90 transition-colors">
-                Submit
-              </button>
-            </div>
-          </form>
+            {formSubmitted ? (
+              <div className="py-8 text-center">
+                <div className="text-oracleGreen text-5xl mb-4">✓</div>
+                <h3 className="text-2xl font-serif font-bold text-aegeanBlue mb-2">Thank You!</h3>
+                <p className="text-aegeanBlue/80">Your feedback has been submitted successfully.</p>
+              </div>
+            ) : (
+              <>
+                <h3 className="text-2xl font-serif font-bold text-aegeanBlue mb-4">Share Your Feedback</h3>
+                <p className="text-aegeanBlue/80 mb-6">
+                  We value your thoughts and suggestions to improve The Oikosystem. Please share your experience with us.
+                </p>
+                
+                <form name="feedback" method="POST" data-netlify="true" onSubmit={handleSubmit} className="space-y-4">
+                  <input type="hidden" name="form-name" value="feedback" />
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-aegeanBlue/70 mb-1" htmlFor="email">
+                      Email
+                    </label>
+                    <input 
+                      id="email"
+                      type="email" 
+                      name="email" 
+                      required
+                      className="w-full px-4 py-2 border border-aegeanBlue/20 rounded-md focus:ring-2 focus:ring-oliveGold/50 focus:border-oliveGold outline-none"
+                      placeholder="you@example.com"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-aegeanBlue/70 mb-1" htmlFor="liked-feature">
+                      What feature did you like most?
+                    </label>
+                    <input 
+                      id="liked-feature"
+                      type="text" 
+                      name="liked-feature"
+                      className="w-full px-4 py-2 border border-aegeanBlue/20 rounded-md focus:ring-2 focus:ring-oliveGold/50 focus:border-oliveGold outline-none"
+                      placeholder="Study, Journal, Agora..."
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-aegeanBlue/70 mb-1" htmlFor="feedback-text">
+                      Your Feedback
+                    </label>
+                    <textarea 
+                      id="feedback-text"
+                      name="feedback-text"
+                      required
+                      rows="4"
+                      className="w-full px-4 py-2 border border-aegeanBlue/20 rounded-md focus:ring-2 focus:ring-oliveGold/50 focus:border-oliveGold outline-none resize-none"
+                      placeholder="Please share your thoughts, suggestions or issues..."
+                    ></textarea>
+                  </div>
+                  
+                  <div className="flex items-start">
+                    <input
+                      id="contact-ok"
+                      name="contact-ok"
+                      type="checkbox"
+                      className="h-4 w-4 mt-1 text-oliveGold border-aegeanBlue/20 rounded focus:ring-oliveGold/50"
+                    />
+                    <label htmlFor="contact-ok" className="ml-3 text-sm text-aegeanBlue/70">
+                      It's okay to contact me about my feedback
+                    </label>
+                  </div>
+                  
+                  <div className="flex gap-3 justify-end pt-2">
+                    <button 
+                      type="button"
+                      className="px-4 py-2 text-aegeanBlue hover:bg-aegeanBlue/5 rounded-md transition-colors"
+                      onClick={closeFeedbackModal}
+                    >
+                      Cancel
+                    </button>
+                    <button 
+                      type="submit" 
+                      className="px-4 py-2 bg-oliveGold text-white rounded-md hover:bg-oliveGold/90 transition-colors"
+                    >
+                      Submit
+                    </button>
+                  </div>
+                </form>
+              </>
+            )}
+          </div>
         </div>
-      </dialog>
+      )}
     </footer>
   );
 };
