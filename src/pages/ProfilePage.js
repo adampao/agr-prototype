@@ -6,6 +6,7 @@ import Button from '../components/common/Button';
 import Input from '../components/common/Input';
 import { useAuth } from '../services/AuthContext';
 import AuthModal from '../components/auth/AuthModal';
+import PhilosophicalCompass from '../components/profile/PhilosophicalCompass';
 
 const ProfilePage = () => {
   const [activeTab, setActiveTab] = useState('profile');
@@ -51,6 +52,15 @@ const ProfilePage = () => {
     }
     
     setUser(updatedUser);
+  };
+  
+  const handleCompassUpdate = (compassData) => {
+    const updatedUser = { 
+      ...user,
+      philosophicalCompass: compassData 
+    };
+    setUser(updatedUser);
+    updateUserProfile(updatedUser);
   };
   
   const handleSavePreferences = () => {
@@ -122,6 +132,12 @@ const ProfilePage = () => {
               Profile
             </Button>
             <Button 
+              variant={activeTab === 'compass' ? 'primary' : 'outline'}
+              onClick={() => setActiveTab('compass')}
+            >
+              Compass
+            </Button>
+            <Button 
               variant={activeTab === 'achievements' ? 'primary' : 'outline'}
               onClick={() => setActiveTab('achievements')}
             >
@@ -180,7 +196,8 @@ const ProfilePage = () => {
               </Card>
             </div>
             
-            <div className="md:col-span-2">
+            <div className="md:col-span-2 space-y-6">
+              {/* Stats Card */}
               <Card>
                 <h3 className="text-lg font-serif font-semibold text-aegeanBlue mb-4">
                   Your Philosophical Journey
@@ -254,7 +271,31 @@ const ProfilePage = () => {
                   </Button>
                 </div>
               </Card>
+              
+              {/* Philosophical Compass */}
+              <PhilosophicalCompass
+                userProfile={user}
+                onSave={handleCompassUpdate}
+              />
             </div>
+          </div>
+        )}
+        
+        {activeTab === 'compass' && (
+          <div className="max-w-3xl mx-auto">
+            <h3 className="text-xl font-serif font-semibold text-aegeanBlue mb-6">
+              Your Philosophical Compass
+            </h3>
+            <p className="text-aegeanBlue/70 mb-6">
+              The Philosophical Compass analyzes your interactions, journal entries, and debate participation 
+              to identify which ancient philosophical schools most closely align with your thinking patterns 
+              and values. This insight can guide your further philosophical exploration.
+            </p>
+            
+            <PhilosophicalCompass
+              userProfile={user}
+              onSave={handleCompassUpdate}
+            />
           </div>
         )}
         

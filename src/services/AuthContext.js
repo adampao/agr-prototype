@@ -25,6 +25,18 @@ const defaultUser = {
     sophiaPoints: 0,
     debatesCount: 0
   },
+  philosophicalCompass: {
+    primarySchool: null,
+    secondarySchool: null,
+    affinities: {
+      'stoic': 0,
+      'peripatetic': 0,
+      'platonic': 0,
+      'skeptic': 0,
+      'cynic': 0
+    },
+    lastUpdated: null
+  },
   achievements: []
 };
 
