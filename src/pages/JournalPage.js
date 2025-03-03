@@ -108,25 +108,72 @@ const JournalPage = () => {
     }
   };
   
+  // Force localStorage to save a value (sometimes helps with browser issues)
+  const forceStore = (key, value) => {
+    try {
+      // First clear any existing item
+      localStorage.removeItem(key);
+      // Wait a tiny bit
+      setTimeout(() => {
+        // Then set the new item
+        localStorage.setItem(key, value);
+        console.log(`Force stored ${key}:`, value.slice(0, 50) + "...");
+      }, 0);
+    } catch (e) {
+      console.error("Force store failed:", e);
+    }
+  };
+
   // Load entries on component mount and when currentUser changes
   useEffect(() => {
     // Only load journal entries if user is authenticated
     if (currentUser) {
-      // Use a user-specific key for journal entries
-      const userEntriesKey = `journalEntries_${currentUser.email || 'default'}`;
+      // Use a user-specific key for journal entries - make it distinctive
+      const userEmail = currentUser.email || 'default';
+      const userEntriesKey = `journal_entries_for_${userEmail}`;
       
       try {
         // Load entries from localStorage
         const savedEntries = localStorage.getItem(userEntriesKey);
+        console.log(`Loading entries for ${userEmail}, found:`, savedEntries ? "data" : "nothing");
         
         if (savedEntries) {
-          const parsedEntries = JSON.parse(savedEntries);
-          setEntries(parsedEntries);
+          try {
+            const parsedEntries = JSON.parse(savedEntries);
+            console.log("Parsed entries length:", parsedEntries.length);
+            setEntries(parsedEntries);
+          } catch (parseError) {
+            console.error("Error parsing entries:", parseError);
+            setEntries([]);
+            // Try to repair by storing empty array
+            forceStore(userEntriesKey, JSON.stringify([]));
+          }
         } else {
+          console.log("No entries found in localStorage, checking backup");
+          
+          // Try to load from session storage backup
+          try {
+            const backupEntries = sessionStorage.getItem("journal_entries_backup");
+            if (backupEntries) {
+              console.log("Found backup entries in session storage!");
+              const parsedBackup = JSON.parse(backupEntries);
+              setEntries(parsedBackup);
+              
+              // Immediately save the restored entries to localStorage
+              forceStore(userEntriesKey, backupEntries);
+              return;
+            }
+          } catch (backupError) {
+            console.error("Error checking backup:", backupError);
+          }
+          
+          console.log("No backup found either, starting with empty array");
           setEntries([]);
+          // Initialize storage with empty array
+          forceStore(userEntriesKey, JSON.stringify([]));
         }
       } catch (error) {
-        console.error('Error loading entries from localStorage:', error);
+        console.error('Error accessing localStorage:', error);
         setEntries([]);
       }
     } else {
@@ -135,12 +182,17 @@ const JournalPage = () => {
     }
     
     // Load daily challenge
-    const savedChallenge = localStorage.getItem('dailyChallenge');
-    
-    if (savedChallenge) {
-      setDailyChallenge(JSON.parse(savedChallenge));
-    } else {
-      // If no challenge exists, create a new one
+    try {
+      const savedChallenge = localStorage.getItem('dailyChallenge');
+      
+      if (savedChallenge) {
+        setDailyChallenge(JSON.parse(savedChallenge));
+      } else {
+        // If no challenge exists, create a new one
+        createNewDailyChallenge();
+      }
+    } catch (e) {
+      console.error("Error loading challenge:", e);
       createNewDailyChallenge();
     }
   }, [currentUser]);
@@ -149,13 +201,32 @@ const JournalPage = () => {
   useEffect(() => {
     if (currentUser && entries) {
       try {
-        const userEntriesKey = `journalEntries_${currentUser.email || 'default'}`;
+        const userEmail = currentUser.email || 'default';
+        const userEntriesKey = `journal_entries_for_${userEmail}`;
         
-        // Store entries in localStorage
+        // Store entries in localStorage using our forced approach
         const entriesJson = JSON.stringify(entries);
-        localStorage.setItem(userEntriesKey, entriesJson);
+        console.log(`Saving ${entries.length} entries for ${userEmail}`);
+        
+        // Use our special force store mechanism
+        forceStore(userEntriesKey, entriesJson);
+        
+        // Double-check storage worked
+        setTimeout(() => {
+          const checkStorage = localStorage.getItem(userEntriesKey);
+          if (!checkStorage) {
+            console.error("Storage verification failed - trying emergency backup");
+            localStorage.setItem(userEntriesKey, entriesJson);
+          }
+        }, 100);
       } catch (error) {
         console.error('Error saving entries to localStorage:', error);
+        // Try one more desperate approach - session storage as backup
+        try {
+          sessionStorage.setItem("journal_entries_backup", JSON.stringify(entries));
+        } catch (e) {
+          console.error("Even backup storage failed:", e);
+        }
       }
     }
   }, [entries, currentUser]);
@@ -218,9 +289,12 @@ const JournalPage = () => {
       // Also directly save to localStorage to ensure sync
       if (currentUser) {
         try {
-          const userEntriesKey = `journalEntries_${currentUser.email || 'default'}`;
+          const userEmail = currentUser.email || 'default';
+          const userEntriesKey = `journal_entries_for_${userEmail}`;
           const entriesJson = JSON.stringify(updatedEntries);
-          localStorage.setItem(userEntriesKey, entriesJson);
+          
+          // Use forced storage for reliability
+          forceStore(userEntriesKey, entriesJson);
         } catch (error) {
           console.error('Error in direct save to localStorage:', error);
         }
@@ -251,9 +325,12 @@ const JournalPage = () => {
       // Also directly save to localStorage to ensure sync
       if (currentUser) {
         try {
-          const userEntriesKey = `journalEntries_${currentUser.email || 'default'}`;
+          const userEmail = currentUser.email || 'default';
+          const userEntriesKey = `journal_entries_for_${userEmail}`;
           const entriesJson = JSON.stringify(updatedEntries);
-          localStorage.setItem(userEntriesKey, entriesJson);
+          
+          // Use forced storage for reliability
+          forceStore(userEntriesKey, entriesJson);
         } catch (error) {
           console.error('Error in fallback save to localStorage:', error);
         }
@@ -277,9 +354,12 @@ const JournalPage = () => {
     // Directly save to localStorage
     if (currentUser) {
       try {
-        const userEntriesKey = `journalEntries_${currentUser.email || 'default'}`;
+        const userEmail = currentUser.email || 'default';
+        const userEntriesKey = `journal_entries_for_${userEmail}`;
         const entriesJson = JSON.stringify(updatedEntries);
-        localStorage.setItem(userEntriesKey, entriesJson);
+        
+        // Use forced storage for reliability
+        forceStore(userEntriesKey, entriesJson);
       } catch (error) {
         console.error('Error in reflection save to localStorage:', error);
       }
@@ -294,9 +374,12 @@ const JournalPage = () => {
     // Directly save to localStorage
     if (currentUser) {
       try {
-        const userEntriesKey = `journalEntries_${currentUser.email || 'default'}`;
+        const userEmail = currentUser.email || 'default';
+        const userEntriesKey = `journal_entries_for_${userEmail}`;
         const entriesJson = JSON.stringify(updatedEntries);
-        localStorage.setItem(userEntriesKey, entriesJson);
+        
+        // Use forced storage for reliability
+        forceStore(userEntriesKey, entriesJson);
       } catch (error) {
         console.error('Error in delete save to localStorage:', error);
       }
@@ -335,9 +418,12 @@ const JournalPage = () => {
       // Also directly save to localStorage to ensure sync
       if (currentUser) {
         try {
-          const userEntriesKey = `journalEntries_${currentUser.email || 'default'}`;
+          const userEmail = currentUser.email || 'default';
+          const userEntriesKey = `journal_entries_for_${userEmail}`;
           const entriesJson = JSON.stringify(updatedEntries);
-          localStorage.setItem(userEntriesKey, entriesJson);
+          
+          // Use forced storage for reliability
+          forceStore(userEntriesKey, entriesJson);
         } catch (error) {
           console.error('Error in challenge save to localStorage:', error);
         }
@@ -376,6 +462,31 @@ const JournalPage = () => {
   const handlePhilosopherChange = (philosopherId) => {
     setCurrentPhilosopher(philosopherId);
   };
+  
+  // Add an event listener for beforeunload to ensure storage is synced
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (currentUser && entries && entries.length > 0) {
+        try {
+          // Force one last save before page unloads
+          const userEmail = currentUser.email || 'default';
+          const userEntriesKey = `journal_entries_for_${userEmail}`;
+          localStorage.setItem(userEntriesKey, JSON.stringify(entries));
+          
+          // Also save to sessionStorage as a backup
+          sessionStorage.setItem("journal_entries_backup", JSON.stringify(entries));
+        } catch (e) {
+          console.error("Error in final save:", e);
+        }
+      }
+    };
+    
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [entries, currentUser]);
   
 
   return (
