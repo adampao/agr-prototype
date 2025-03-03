@@ -382,6 +382,11 @@ const PhilosopherChat = () => {
       
       setUserGreeted(true);
       
+      // Scroll to top of page for better mobile experience
+      setTimeout(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }, 100);
+      
       // Generate audio for greeting if voice is enabled
       if (voiceEnabled) {
         setTimeout(async () => {

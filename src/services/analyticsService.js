@@ -71,8 +71,8 @@ export const trackPageView = (pageName) => {
   
   localStorage.setItem('agr_analytics', JSON.stringify(data));
   
-  // Option to send this data to your backend
-  // sendAnalyticsToBackend({ type: 'pageView', page: pageName });
+  // Send this data to the backend
+  sendAnalyticsToBackend({ type: 'pageView', page: pageName });
 };
 
 // Record a feature use
@@ -91,8 +91,8 @@ export const trackFeatureUse = (featureName) => {
   
   localStorage.setItem('agr_analytics', JSON.stringify(data));
   
-  // Option to send this data to your backend
-  // sendAnalyticsToBackend({ type: 'featureUse', feature: featureName });
+  // Send this data to the backend
+  sendAnalyticsToBackend({ type: 'featureUse', feature: featureName });
 };
 
 // Record user feedback
@@ -124,8 +124,27 @@ export const hasFeedback = () => {
 
 // Send analytics to backend
 const sendAnalyticsToBackend = async (data) => {
-  // This is a placeholder - in a real implementation, you would send the data to your backend
-  console.log("Analytics data would be sent to backend:", data);
+  // This sends analytics data to the backend via the same endpoint as feedback
+  try {
+    const analyticsData = getAnalyticsData();
+    const response = await fetch('/.netlify/functions/record-feedback', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        type: 'analytics',
+        sessionId: getSessionId(),
+        timestamp: new Date().toISOString(),
+        analyticsData: analyticsData,
+        event: data
+      })
+    });
+    return response.ok;
+  } catch (error) {
+    console.error('Error sending analytics:', error);
+    return false;
+  }
 };
 
 // Send feedback to backend via Netlify function
