@@ -59,18 +59,38 @@ const philosopherSchoolMap = {
 };
 
 const PhilosophicalCompass = ({ userProfile, onSave }) => {
-  const [compassData, setCompassData] = useState(userProfile.philosophicalCompass || {
+  const [compassData, setCompassData] = useState(userProfile?.philosophicalCompass || {
     primarySchool: null,
     secondarySchool: null,
-    affinities: {},
+    affinities: {
+      'stoic': 0,
+      'peripatetic': 0,
+      'platonic': 0,
+      'skeptic': 0,
+      'cynic': 0
+    },
     lastUpdated: null
   });
   
   const [isUpdating, setIsUpdating] = useState(false);
   
-  // Calculate compass data based on user interactions
+  // Calculate compass data based on user interactions - only when component mounts
   useEffect(() => {
     if (!userProfile || isUpdating) return;
+    
+    // If we already have compass data with a lastUpdated timestamp
+    // that's less than 1 hour old, don't recalculate
+    if (userProfile.philosophicalCompass && 
+        userProfile.philosophicalCompass.lastUpdated) {
+      const lastUpdate = new Date(userProfile.philosophicalCompass.lastUpdated);
+      const oneHourAgo = new Date();
+      oneHourAgo.setHours(oneHourAgo.getHours() - 1);
+      
+      if (lastUpdate > oneHourAgo) {
+        setCompassData(userProfile.philosophicalCompass);
+        return;
+      }
+    }
     
     // Start updating process
     setIsUpdating(true);
@@ -92,13 +112,15 @@ const PhilosophicalCompass = ({ userProfile, onSave }) => {
     
     setCompassData(newCompassData);
     
-    // Save updated compass data
+    // Save updated compass data, but only once when mounting
     if (onSave) {
       onSave(newCompassData);
     }
     
     setIsUpdating(false);
-  }, [userProfile, onSave]);
+    
+  // Add userProfile as a dependency, but have logic to prevent continuous updates
+  }, [userProfile?.philosophicalCompass?.lastUpdated]);
   
   const calculateAffinities = (user) => {
     const affinities = {

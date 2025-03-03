@@ -68,42 +68,43 @@ const ProfilePage = () => {
     alert('Preferences saved successfully!');
   };
   
-  // Redirect to home if not logged in
-  if (!currentUser && !authModalOpen) {
-    // Show auth modal first
-    setTimeout(() => setAuthModalOpen(true), 0);
-    
-    // If still not logged in, redirect
-    if (!currentUser) {
-      return (
-        <Layout>
-          <div className="max-w-6xl mx-auto px-4 py-16">
-            <Card>
-              <div className="text-center py-8">
-                <h2 className="text-2xl font-serif font-bold text-aegeanBlue mb-4">
-                  Sign In Required
-                </h2>
-                <p className="mb-6 text-aegeanBlue/70">
-                  Please sign in or create an account to view your profile.
-                </p>
-                <div className="flex justify-center space-x-4">
-                  <Button onClick={() => setAuthModalOpen(true)}>
-                    Sign In
-                  </Button>
-                </div>
-              </div>
-            </Card>
-            
-            {/* Auth Modal */}
-            <AuthModal
-              isOpen={authModalOpen}
-              onClose={() => setAuthModalOpen(false)}
-              initialMode="signin"
-            />
-          </div>
-        </Layout>
-      );
+  // Show auth modal if not logged in
+  useEffect(() => {
+    if (!currentUser && !authModalOpen) {
+      setAuthModalOpen(true);
     }
+  }, [currentUser, authModalOpen]);
+  
+  // Redirect to home if not logged in
+  if (!currentUser) {
+    return (
+      <Layout>
+        <div className="max-w-6xl mx-auto px-4 py-16">
+          <Card>
+            <div className="text-center py-8">
+              <h2 className="text-2xl font-serif font-bold text-aegeanBlue mb-4">
+                Sign In Required
+              </h2>
+              <p className="mb-6 text-aegeanBlue/70">
+                Please sign in or create an account to view your profile.
+              </p>
+              <div className="flex justify-center space-x-4">
+                <Button onClick={() => setAuthModalOpen(true)}>
+                  Sign In
+                </Button>
+              </div>
+            </div>
+          </Card>
+          
+          {/* Auth Modal */}
+          <AuthModal
+            isOpen={authModalOpen}
+            onClose={() => setAuthModalOpen(false)}
+            initialMode="signin"
+          />
+        </div>
+      </Layout>
+    );
   }
   
   // Don't render until user data is loaded
@@ -274,6 +275,7 @@ const ProfilePage = () => {
               
               {/* Philosophical Compass */}
               <PhilosophicalCompass
+                key={`compass-${user.email || 'default'}`}
                 userProfile={user}
                 onSave={handleCompassUpdate}
               />
@@ -293,6 +295,7 @@ const ProfilePage = () => {
             </p>
             
             <PhilosophicalCompass
+              key={`compass-tab-${user.email || 'default'}`}
               userProfile={user}
               onSave={handleCompassUpdate}
             />
