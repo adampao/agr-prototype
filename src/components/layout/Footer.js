@@ -1,21 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import AboutModal from '../common/AboutModal';
-import { recordFeedback, getAnalyticsData } from '../../services/analyticsService';
+import FeedbackCard from '../common/FeedbackCard';
+import Button from '../common/Button';
 
 const Footer = () => {
   const location = useLocation();
   const [isOnboardingPage, setIsOnboardingPage] = useState(false);
-  const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
+  const [openFeedbackForm, setOpenFeedbackForm] = useState(false);
   const [aboutModalOpen, setAboutModalOpen] = useState(false);
-  const [formSubmitted, setFormSubmitted] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  // Form fields
-  const [feedbackText, setFeedbackText] = useState('');
-  const [email, setEmail] = useState('');
-  const [likedFeature, setLikedFeature] = useState('');
-  const [contactOk, setContactOk] = useState(false);
 
   useEffect(() => {
     // Check if we're on the onboarding page
@@ -28,20 +21,9 @@ const Footer = () => {
   }
 
   const openFeedbackModal = () => {
-    setFeedbackModalOpen(true);
-  };
-
-  const closeFeedbackModal = () => {
-    setFeedbackModalOpen(false);
-    // Reset the form submission status after some time
-    setTimeout(() => {
-      setFormSubmitted(false);
-      // Reset form fields
-      setFeedbackText('');
-      setEmail('');
-      setLikedFeature('');
-      setContactOk(false);
-    }, 1000);
+    // Trigger the global feedback form to open
+    setOpenFeedbackForm(prev => !prev); // Toggle to force re-render
+    window.openFeedbackCard = true;
   };
   
   const openAboutModal = () => {
@@ -52,47 +34,17 @@ const Footer = () => {
     setAboutModalOpen(false);
   };
   
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    
-    try {
-      // Get the features used from analytics data
-      const analyticsData = getAnalyticsData();
-      const features = analyticsData.features || {};
-      const pageViews = analyticsData.pageViews || {};
-      
-      // Use the same feedback system as FeedbackCard
-      const success = await recordFeedback({
-        interestLevel: 5, // Default to high interest for footer feedback
-        feedback: feedbackText,
-        email: email || null,
-        features: {
-          ...features,
-          // Add the liked feature if provided
-          ...(likedFeature ? { [likedFeature]: 1 } : {})
-        },
-        pageViews,
-        source: 'footer', // Mark the source as footer
-        contactOk: contactOk
-      });
-      
-      if (success) {
-        console.log('Feedback successfully submitted');
-        setFormSubmitted(true);
-        
-        // Close the modal after a delay
-        setTimeout(() => {
-          closeFeedbackModal();
-        }, 2000);
+  // Function to open the waitlist modal
+  const openWaitlistModal = () => {
+    const modal = document.getElementById('waitlist-modal');
+    if (modal) {
+      if (typeof modal.showModal === 'function') {
+        modal.showModal();
       } else {
-        throw new Error('Failed to submit feedback');
+        alert('Your browser does not support the dialog element.');
       }
-    } catch (error) {
-      console.error('Error submitting feedback:', error);
-      alert('There was a problem submitting your feedback. Please try again.');
-    } finally {
-      setIsSubmitting(false);
+    } else {
+      alert('Waitlist modal not found. Please try again on the home page.');
     }
   };
 
@@ -100,7 +52,7 @@ const Footer = () => {
     <footer className="bg-marbleWhite border-t border-aegeanBlue/10 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="md:flex md:items-center md:justify-between">
-          <div className="flex justify-center md:justify-start space-x-6">
+          <div className="flex flex-wrap justify-center md:justify-start space-x-4 md:space-x-6 items-center">
             <Link to="/" className="text-aegeanBlue hover:text-aegeanBlue/80">
               Home
             </Link>
@@ -116,6 +68,14 @@ const Footer = () => {
             >
               Feedback
             </button>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={openWaitlistModal}
+              className="mt-2 md:mt-0"
+            >
+              Join the Waitlist
+            </Button>
           </div>
           <p className="mt-4 text-center md:mt-0 md:text-right text-sm text-aegeanBlue/70">
             &copy; {new Date().getFullYear()} Ancient Greece Revisited. All rights reserved.
@@ -126,115 +86,74 @@ const Footer = () => {
         </div>
       </div>
       
-      {/* Feedback Modal */}
-      {feedbackModalOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6 relative">
-            <button 
-              onClick={closeFeedbackModal}
-              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
-              aria-label="Close"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-            
-            {formSubmitted ? (
-              <div className="py-8 text-center">
-                <div className="text-oracleGreen text-5xl mb-4">✓</div>
-                <h3 className="text-2xl font-serif font-bold text-aegeanBlue mb-2">Thank You!</h3>
-                <p className="text-aegeanBlue/80">Your feedback has been submitted successfully.</p>
-              </div>
-            ) : (
-              <>
-                <h3 className="text-2xl font-serif font-bold text-aegeanBlue mb-4">Share Your Feedback</h3>
-                <p className="text-aegeanBlue/80 mb-6">
-                  We value your thoughts and suggestions to improve The Oikosystem. Please share your experience with us.
-                </p>
-                
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-aegeanBlue/70 mb-1" htmlFor="email">
-                      Email
-                    </label>
-                    <input 
-                      id="email"
-                      type="email" 
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="w-full px-4 py-2 border border-aegeanBlue/20 rounded-md focus:ring-2 focus:ring-oliveGold/50 focus:border-oliveGold outline-none"
-                      placeholder="you@example.com"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-aegeanBlue/70 mb-1" htmlFor="liked-feature">
-                      What feature did you like most?
-                    </label>
-                    <input 
-                      id="liked-feature"
-                      type="text" 
-                      value={likedFeature}
-                      onChange={(e) => setLikedFeature(e.target.value)}
-                      className="w-full px-4 py-2 border border-aegeanBlue/20 rounded-md focus:ring-2 focus:ring-oliveGold/50 focus:border-oliveGold outline-none"
-                      placeholder="Study, Journal, Agora..."
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-aegeanBlue/70 mb-1" htmlFor="feedback-text">
-                      Your Feedback
-                    </label>
-                    <textarea 
-                      id="feedback-text"
-                      value={feedbackText}
-                      onChange={(e) => setFeedbackText(e.target.value)}
-                      required
-                      rows="4"
-                      className="w-full px-4 py-2 border border-aegeanBlue/20 rounded-md focus:ring-2 focus:ring-oliveGold/50 focus:border-oliveGold outline-none resize-none"
-                      placeholder="Please share your thoughts, suggestions or issues..."
-                    ></textarea>
-                  </div>
-                  
-                  <div className="flex items-start">
-                    <input
-                      id="contact-ok"
-                      type="checkbox"
-                      checked={contactOk}
-                      onChange={(e) => setContactOk(e.target.checked)}
-                      className="h-4 w-4 mt-1 text-oliveGold border-aegeanBlue/20 rounded focus:ring-oliveGold/50"
-                    />
-                    <label htmlFor="contact-ok" className="ml-3 text-sm text-aegeanBlue/70">
-                      It's okay to contact me about my feedback
-                    </label>
-                  </div>
-                  
-                  <div className="flex gap-3 justify-end pt-2">
-                    <button 
-                      type="button"
-                      className="px-4 py-2 text-aegeanBlue hover:bg-aegeanBlue/5 rounded-md transition-colors"
-                      onClick={closeFeedbackModal}
-                    >
-                      Cancel
-                    </button>
-                    <button 
-                      type="submit" 
-                      disabled={isSubmitting}
-                      className="px-4 py-2 bg-oliveGold text-white rounded-md hover:bg-oliveGold/90 transition-colors disabled:opacity-50"
-                    >
-                      {isSubmitting ? 'Submitting...' : 'Submit'}
-                    </button>
-                  </div>
-                </form>
-              </>
-            )}
-          </div>
-        </div>
-      )}
-      
       {/* About Modal */}
       <AboutModal isOpen={aboutModalOpen} onClose={closeAboutModal} />
+      
+      {/* Include the FeedbackCard component to ensure it gets rendered */}
+      <FeedbackCard />
+      
+      {/* Waitlist Modal */}
+      <dialog id="waitlist-modal" className="modal p-0 rounded-lg shadow-elegant max-w-md w-full bg-white">
+        <div className="p-6">
+          <h3 className="text-2xl font-serif font-bold text-aegeanBlue mb-4">Join Our Waitlist</h3>
+          <p className="text-aegeanBlue/80 mb-6">
+            Be the first to know when The Oikosystem launches. We'll notify you as soon as it's ready.
+          </p>
+          
+          <form name="waitlist" method="POST" data-netlify="true" className="space-y-4">
+            <input type="hidden" name="form-name" value="waitlist" />
+            
+            <p>
+              <label className="block text-sm font-medium text-aegeanBlue/70 mb-1">
+                Email
+                <input 
+                  type="email" 
+                  name="email" 
+                  required
+                  className="w-full mt-1 px-4 py-2 border border-aegeanBlue/20 rounded-md focus:ring-2 focus:ring-oliveGold/50 focus:border-oliveGold outline-none"
+                  placeholder="you@example.com"
+                />
+              </label>
+            </p>
+            
+            <p>
+              <label className="block text-sm font-medium text-aegeanBlue/70 mb-1">
+                Name (Optional)
+                <input 
+                  type="text" 
+                  name="name"
+                  className="w-full mt-1 px-4 py-2 border border-aegeanBlue/20 rounded-md focus:ring-2 focus:ring-oliveGold/50 focus:border-oliveGold outline-none"
+                  placeholder="Your name"
+                />
+              </label>
+            </p>
+            
+            <p className="flex items-start">
+              <label className="flex items-start">
+                <input
+                  name="interest"
+                  type="checkbox"
+                  className="h-4 w-4 mt-1 text-oliveGold border-aegeanBlue/20 rounded focus:ring-oliveGold/50"
+                />
+                <span className="ml-3 text-sm text-aegeanBlue/70">
+                  I'd like to participate in beta testing
+                </span>
+              </label>
+            </p>
+            
+            <div className="flex gap-3 justify-end">
+              <Button 
+                variant="ghost" 
+                onClick={() => document.getElementById('waitlist-modal').close()}
+                type="button"
+              >
+                Cancel
+              </Button>
+              <Button type="submit">Submit</Button>
+            </div>
+          </form>
+        </div>
+      </dialog>
     </footer>
   );
 };

@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { recordFeedback, hasFeedback, getAnalyticsData } from '../../services/analyticsService';
 import Button from './Button';
 
-const FeedbackCard = () => {
+const FeedbackCard = ({ openFromFooter = false }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [step, setStep] = useState(1);
   const [interestLevel, setInterestLevel] = useState(null);
@@ -12,6 +12,21 @@ const FeedbackCard = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasGivenFeedback, setHasGivenFeedback] = useState(hasFeedback());
   const [showTrigger, setShowTrigger] = useState(false);
+  
+  // If triggered from another component via window variable
+  useEffect(() => {
+    if (window.openFeedbackCard) {
+      setIsOpen(true);
+      window.openFeedbackCard = false;
+    }
+  }, []);
+  
+  // If openFromFooter prop changes, open the feedback card
+  useEffect(() => {
+    if (openFromFooter) {
+      setIsOpen(true);
+    }
+  }, [openFromFooter]);
   
   // Only show the feedback trigger after the user has been on the site for a short time
   useEffect(() => {
@@ -114,7 +129,7 @@ const FeedbackCard = () => {
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 50 }}
-            className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 w-auto"
+            className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-[1000] w-auto"
           >
             <button
               onClick={() => setIsOpen(true)}
