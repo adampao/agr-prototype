@@ -118,8 +118,8 @@ export const getAnalyticsData = () => {
 
 // Check if user has provided feedback
 export const hasFeedback = () => {
-  const data = JSON.parse(localStorage.getItem('agr_analytics') || '{}');
-  return data.feedbackGiven || false;
+  // Always return false so feedback button remains visible
+  return false;
 };
 
 // Send analytics to backend

@@ -16,7 +16,7 @@ const Input = ({
   ...props
 }) => {
   const inputClasses = `
-    input-field
+    px-4 py-2 border border-aegeanBlue/20 rounded-md focus:ring-2 focus:ring-oliveGold/50 focus:border-oliveGold outline-none
     ${error ? 'border-terracotta focus:ring-terracotta/50' : ''}
     ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
     ${fullWidth ? 'w-full' : ''}
