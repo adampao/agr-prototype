@@ -22,7 +22,8 @@ const defaultUser = {
     entriesCount: 0,
     challengesCompleted: 0,
     reflectionsCount: 0,
-    sophiaPoints: 0
+    sophiaPoints: 0,
+    debatesCount: 0
   },
   achievements: []
 };

@@ -125,12 +125,10 @@ const PhilosopherDebate = () => {
   const [currentTurn, setCurrentTurn] = useState(null); // To track which philosopher's turn it is
   const [debateStage, setDebateStage] = useState('setup'); // 'setup', 'opening', 'discussion', 'conclusion'
   const [switchSuggestion, setSwitchSuggestion] = useState(null);
-  const [votes, setVotes] = useState({ 
-    [philosopher1?.id]: 0, 
-    [philosopher2?.id]: 0 
-  });
+  const [votes, setVotes] = useState({});
   const [hasVoted, setHasVoted] = useState(false);  // Add this state to track if user has voted
   const [componentKey, setComponentKey] = useState(0);
+  const [expectedConclusions, setExpectedConclusions] = useState(2);
   const [pointsAwarded, setPointsAwarded] = useState(false);
   const [achievementUnlocked, setAchievementUnlocked] = useState(null);
   
@@ -220,6 +218,22 @@ const PhilosopherDebate = () => {
       }, 5000);
     }
   };
+  
+  // Function to increment the debate count
+  const incrementDebateCount = () => {
+    if (currentUser) {
+      const updatedUser = {
+        ...currentUser,
+        stats: {
+          ...currentUser.stats,
+          debatesCount: (currentUser.stats.debatesCount || 0) + 1
+        }
+      };
+      
+      // Update user profile
+      updateUserProfile(updatedUser);
+    }
+  };
  
   
   const messagesEndRef = useRef(null);
@@ -235,6 +249,16 @@ const getNextTurn = (currentId) => {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [debateMessages]);
+  
+  // Initialize vote counts when philosophers change
+  useEffect(() => {
+    const newVotes = {};
+    if (philosopher1) newVotes[philosopher1.id] = 0;
+    if (philosopher2) newVotes[philosopher2.id] = 0;
+    if (philosopher3) newVotes[philosopher3.id] = 0;
+    if (philosopher4) newVotes[philosopher4.id] = 0;
+    setVotes(newVotes);
+  }, [philosopher1, philosopher2, philosopher3, philosopher4]);
   
   // Function to start the debate
   const startDebate = async () => {
@@ -567,7 +591,12 @@ if (
     setDebateStage('conclusion');
     
     try {
-      // Get concluding statements from both philosophers
+      // Get active philosophers
+      const activePhilosophers = [philosopher1, philosopher2, philosopher3, philosopher4].filter(Boolean);
+      // Set the expected conclusions count for voting
+      setExpectedConclusions(activePhilosophers.length);
+      
+      // Get concluding statements from active philosophers
       const topicText = selectedTopic === 'custom' 
         ? customTopic 
         : debateTopics.find(t => t.id === selectedTopic)?.description || '';
@@ -585,106 +614,127 @@ if (
       const previousMessages = debateMessages
         .filter(m => m.type === 'philosopher')
         .map(m => {
+          const philosopherName = philosophers.find(p => p.id === m.philosopherId)?.name || "Unknown";
           return { 
             role: 'assistant', 
-            content: `[${philosophers.find(p => p.id === m.philosopherId)?.name}]: ${m.text}` 
+            content: `[${philosopherName}]: ${m.text}` 
           };
         });
+        
+      // Get all active philosophers' names except philosopher1
+      let otherNames = "";
+      if (activePhilosophers.length > 1) {
+        otherNames = activePhilosophers
+          .filter(p => p !== philosopher1)
+          .map(p => p.name)
+          .join(' and ');
+      }
       
-      // Get philosopher 1's conclusion
-      const promptConclusion1 = `You are ${philosopher1.name} in a philosophical debate with ${philosopher2.name} on the topic: "${topicText}". Please provide your concluding statement, summarizing your position and the key points of your argument. Keep it concise (about 100 words) and maintain your historical perspective as ${philosopher1.name} from ancient Greece (${philosopher1.timePeriod}).`;
+      // Variables to store responses for each philosopher
+      let response1, response2, response3, response4;
       
-      const response1 = await sendMessageToPhilosopher(
-        philosopher1.id,
-        promptConclusion1,
-        previousMessages
-      );
-      
-      // Add philosopher 1's conclusion
-      setDebateMessages(messages => [
-        ...messages,
-        { 
-          type: 'philosopher', 
-          philosopherId: philosopher1.id, 
-          text: response1.response,
-          isConclusion: true
-        }
-      ]);
-      
-      // Get philosopher 2's conclusion
-      const promptConclusion2 = `You are ${philosopher2.name} in a philosophical debate with ${philosopher1.name} on the topic: "${topicText}". Please provide your concluding statement, summarizing your position and the key points of your argument. Keep it concise (about 100 words) and maintain your historical perspective as ${philosopher2.name} from ancient Greece (${philosopher2.timePeriod}).`;
-      
-      const response2 = await sendMessageToPhilosopher(
-        philosopher2.id,
-        promptConclusion2,
-        previousMessages.concat([
-          { 
-            role: 'assistant', 
-            content: `[${philosopher1.name}]: ${response1.response}` 
-          }
-        ])
-      );
-      
-      // Add philosopher 2's conclusion
-      setDebateMessages(messages => [
-        ...messages,
-        { 
-          type: 'philosopher', 
-          philosopherId: philosopher2.id, 
-          text: response2.response,
-          isConclusion: true
-        }
-      ]);
-
-       // Get philosopher 3's conclusion
-       const promptConclusion3 = `You are ${philosopher3.name} in a philosophical debate with ${philosopher1.name} and ${philosopher2.name} on the topic: "${topicText}". Please provide your concluding statement, summarizing your position and the key points of your argument. Keep it concise (about 100 words) and maintain your historical perspective as ${philosopher2.name} from ancient Greece (${philosopher2.timePeriod}).`;
-      
-       const response3 = await sendMessageToPhilosopher(
-         philosopher3.id,
-         promptConclusion3,
-         previousMessages.concat([
-           { 
-             role: 'assistant', 
-             content: `[${philosopher1.name}]: ${response1.response}, [${philosopher2.name}]: ${response2.response}`
-           }
-         ])
-       );
-       
-       // Add philosopher 3's conclusion
-       setDebateMessages(messages => [
-         ...messages,
-         { 
-           type: 'philosopher', 
-           philosopherId: philosopher3.id, 
-           text: response3.response,
-           isConclusion: true
-         }
-       ]);
-
-        // Get philosopher 4's conclusion
-        const promptConclusion4 = `You are ${philosopher4.name} in a philosophical debate with ${philosopher1.name} and ${philosopher2.name} and ${philosopher3.name} on the topic: "${topicText}". Please provide your concluding statement, summarizing your position and the key points of your argument. Keep it concise (about 100 words) and maintain your historical perspective as ${philosopher2.name} from ancient Greece (${philosopher2.timePeriod}).`;
-      
-        const response4 = await sendMessageToPhilosopher(
-          philosopher4.id,
-          promptConclusion3,
-          previousMessages.concat([
-            { 
-              role: 'assistant', 
-              content: `[${philosopher1.name}]: ${response1.response} , [${philosopher2.name}]: ${response2.response} , [${philosopher3.name}]: ${response3.response}`
-            }
-          ])
+      // Get philosopher 1's conclusion if it exists
+      if (philosopher1) {
+        const promptConclusion1 = `You are ${philosopher1.name} in a philosophical debate ${otherNames ? 'with ' + otherNames : ''} on the topic: "${topicText}". Please provide your concluding statement, summarizing your position and the key points of your argument. Keep it concise (about 100 words) and maintain your historical perspective as ${philosopher1.name} from ancient Greece (${philosopher1.timePeriod}).`;
+        
+        response1 = await sendMessageToPhilosopher(
+          philosopher1.id,
+          promptConclusion1,
+          previousMessages
         );
         
-        // Add philosopher 4's conclusion
+        // Add philosopher 1's conclusion
         setDebateMessages(messages => [
           ...messages,
           { 
             type: 'philosopher', 
-            philosopherId: philosopher4.id, 
-            text: response4.response,
+            philosopherId: philosopher1.id, 
+            text: response1.response,
             isConclusion: true
           }
         ]);
+      }
+      
+      // Get philosopher 2's conclusion if it exists
+      if (philosopher2 && response1) {
+        const promptConclusion2 = `You are ${philosopher2.name} in a philosophical debate with ${philosopher1.name} on the topic: "${topicText}". Please provide your concluding statement, summarizing your position and the key points of your argument. Keep it concise (about 100 words) and maintain your historical perspective as ${philosopher2.name} from ancient Greece (${philosopher2.timePeriod}).`;
+        
+        response2 = await sendMessageToPhilosopher(
+          philosopher2.id,
+          promptConclusion2,
+          previousMessages.concat([
+            { 
+              role: 'assistant', 
+              content: `[${philosopher1.name}]: ${response1.response}` 
+            }
+          ])
+        );
+        
+        // Add philosopher 2's conclusion
+        setDebateMessages(messages => [
+          ...messages,
+          { 
+            type: 'philosopher', 
+            philosopherId: philosopher2.id, 
+            text: response2.response,
+            isConclusion: true
+          }
+        ]);
+      }
+
+      // Get philosopher 3's conclusion if it exists
+      if (philosopher3 && response1 && response2) {
+        const promptConclusion3 = `You are ${philosopher3.name} in a philosophical debate with ${philosopher1.name} and ${philosopher2.name} on the topic: "${topicText}". Please provide your concluding statement, summarizing your position and the key points of your argument. Keep it concise (about 100 words) and maintain your historical perspective as ${philosopher3.name} from ancient Greece (${philosopher3.timePeriod}).`;
+        
+        response3 = await sendMessageToPhilosopher(
+          philosopher3.id,
+          promptConclusion3,
+          previousMessages.concat([
+            { 
+              role: 'assistant', 
+              content: `[${philosopher1.name}]: ${response1.response}, [${philosopher2.name}]: ${response2.response}`
+            }
+          ])
+        );
+        
+        // Add philosopher 3's conclusion
+        setDebateMessages(messages => [
+          ...messages,
+          { 
+            type: 'philosopher', 
+            philosopherId: philosopher3.id, 
+            text: response3.response,
+            isConclusion: true
+          }
+        ]);
+
+        // Get philosopher 4's conclusion if it exists
+        if (philosopher4 && response1 && response2 && response3) {
+          const promptConclusion4 = `You are ${philosopher4.name} in a philosophical debate with ${philosopher1.name}, ${philosopher2.name}, and ${philosopher3.name} on the topic: "${topicText}". Please provide your concluding statement, summarizing your position and the key points of your argument. Keep it concise (about 100 words) and maintain your historical perspective as ${philosopher4.name} from ancient Greece (${philosopher4.timePeriod}).`;
+          
+          response4 = await sendMessageToPhilosopher(
+            philosopher4.id,
+            promptConclusion4,
+            previousMessages.concat([
+              { 
+                role: 'assistant', 
+                content: `[${philosopher1.name}]: ${response1.response}, [${philosopher2.name}]: ${response2.response}, [${philosopher3.name}]: ${response3.response}`
+              }
+            ])
+          );
+          
+          // Add philosopher 4's conclusion
+          setDebateMessages(messages => [
+            ...messages,
+            { 
+              type: 'philosopher', 
+              philosopherId: philosopher4.id, 
+              text: response4.response,
+              isConclusion: true
+            }
+          ]);
+        }
+      }
       
       // Add final system message
       setDebateMessages(messages => [
@@ -694,6 +744,9 @@ if (
           text: 'The debate has concluded. You may reset to start a new debate or continue the conversation.' 
         }
       ]);
+      
+      // Increment the user's debate count
+      incrementDebateCount();
       
     } catch (error) {
       console.error('Error concluding debate:', error);
@@ -1179,10 +1232,10 @@ Please provide a brief introduction (about 100 words) explaining your perspectiv
   )}
 </AnimatePresence>
 
-{/* Voting UI */}
+{/* Voting UI - Show only after all philosophers have concluded */}
 {debateStage === 'conclusion' && 
   !hasVoted &&
-  debateMessages.filter(m => m.type === 'philosopher' && m.isConclusion).length >= 2 && (
+  debateMessages.filter(m => m.type === 'philosopher' && m.isConclusion).length >= expectedConclusions && (
   <div className="w-full bg-marbleWhite/70 border border-aegeanBlue/20 rounded-lg p-4 mt-4">
     <h3 className="text-center font-medium text-aegeanBlue mb-2">
       Who made the stronger argument?

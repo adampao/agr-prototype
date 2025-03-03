@@ -212,7 +212,7 @@ const ProfilePage = () => {
                   </div>
                   <div className="text-center p-4 bg-oracleGreen/10 rounded-lg">
                     <div className="text-2xl font-bold text-oracleGreen mb-1">
-                      0
+                      {user.stats.debatesCount || 0}
                     </div>
                     <div className="text-sm text-aegeanBlue/70">
                       Debates
