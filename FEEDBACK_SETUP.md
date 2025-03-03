@@ -18,7 +18,7 @@ For quick setup using our pre-configured Google Sheet:
 1. The service account JSON file is already included in the project as `agr-demo-feedback-6db66d264a69.json`
 2. The environment variables are already set in the `.env` file
 3. Run `npm run test:sheets` to verify the Google Sheets integration works
-4. Make sure you've shared [this Google Sheet](https://docs.google.com/spreadsheets/d/1_WL5j_tK5hVW8PdEJnUZqKFsvGabm5OA3_06nXvQ9C8/edit) with the service account email: `agr-demo-feedback@agr-demo-feedback.iam.gserviceaccount.com`
+4. Make sure you've shared [this Google Sheet](https://docs.google.com/spreadsheets/d/1RzNnqdEk1PxUi-Ret_uIeMaRxGXmA7xVMV6dLL28DJ4/edit) with the service account email: `agr-demo-feedback@agr-demo-feedback.iam.gserviceaccount.com`
 
 ## Detailed Setup Instructions (If Creating Your Own Sheet)
 

@@ -40,7 +40,7 @@ exports.handler = async function(event, context) {
         // Get the Google Sheet ID (use a hardcoded one if the env var is missing)
         const sheetId = process.env.GOOGLE_SHEET_ID && process.env.GOOGLE_SHEET_ID !== 'your_google_sheet_id_here' 
           ? process.env.GOOGLE_SHEET_ID 
-          : '1_WL5j_tK5hVW8PdEJnUZqKFsvGabm5OA3_06nXvQ9C8'; // Fallback to our test sheet
+          : '1RzNnqdEk1PxUi-Ret_uIeMaRxGXmA7xVMV6dLL28DJ4'; // Fallback to our production sheet
         
         // Create a JWT client using service account credentials
         const serviceAccountAuth = new JWT({

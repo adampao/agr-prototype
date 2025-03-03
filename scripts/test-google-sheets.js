@@ -28,7 +28,7 @@ async function testGoogleSheetsConnection() {
     console.error('Warning: GOOGLE_SHEET_ID is not set in .env file, using default test sheet');
   }
   
-  const sheetId = process.env.GOOGLE_SHEET_ID || '1_WL5j_tK5hVW8PdEJnUZqKFsvGabm5OA3_06nXvQ9C8';
+  const sheetId = process.env.GOOGLE_SHEET_ID || '1RzNnqdEk1PxUi-Ret_uIeMaRxGXmA7xVMV6dLL28DJ4';
   
   try {
     console.log(`Service Account Email: ${process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL}`);
