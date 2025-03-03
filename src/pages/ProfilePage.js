@@ -158,11 +158,15 @@ const ProfilePage = () => {
             <div className="md:col-span-1">
               <Card>
                 <div className="flex flex-col items-center text-center">
-                  <div className="w-32 h-32 rounded-full overflow-hidden mb-4 border-4 border-aegeanBlue/20">
+                <div className="w-32 h-32 rounded-full overflow-hidden mb-4 border-4 border-aegeanBlue/20">
                     <img 
-                      src={user.avatar} 
+                      src={user.avatar || '/images/avatars/avatar.png'} 
                       alt={user.name} 
                       className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = '/images/avatars/avatar.png';
+                      }}
                     />
                   </div>
                   <h2 className="text-xl font-serif font-semibold text-aegeanBlue mb-1">

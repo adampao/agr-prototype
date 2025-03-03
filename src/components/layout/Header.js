@@ -81,9 +81,13 @@ const Header = () => {
                   <div className="text-sm text-aegeanBlue flex items-center space-x-2">
                     <div className="h-8 w-8 rounded-full overflow-hidden bg-aegeanBlue/10">
                       <img 
-                        src={currentUser.avatar || 'https://via.placeholder.com/150'} 
+                        src={currentUser.avatar || '/images/avatars/avatar.png'} 
                         alt="Profile" 
                         className="h-full w-full object-cover"
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = '/images/avatars/avatar.png';
+                        }}
                       />
                     </div>
                     <span>{currentUser.name}</span>
@@ -159,12 +163,16 @@ const Header = () => {
             <div className="mt-4 pt-4 border-t border-aegeanBlue/10">
               {currentUser ? (
                 <>
-                  <div className="pl-3 pr-4 py-2 flex items-center space-x-3">
+                  <div className="text-sm text-aegeanBlue flex items-center space-x-2">
                     <div className="h-8 w-8 rounded-full overflow-hidden bg-aegeanBlue/10">
                       <img 
-                        src={currentUser.avatar || 'https://via.placeholder.com/150'} 
+                        src={currentUser.avatar || '/images/avatars/avatar.png'} 
                         alt="Profile" 
                         className="h-full w-full object-cover"
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = '/images/avatars/avatar.png';
+                        }}
                       />
                     </div>
                     <span className="text-aegeanBlue font-medium">{currentUser.name}</span>
