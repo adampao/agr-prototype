@@ -102,7 +102,7 @@ const HomePage = () => {
             </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
             <Card>
               <div className="text-center">
                 <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-philosophicalPurple/20 flex items-center justify-center">
@@ -166,7 +166,7 @@ const HomePage = () => {
             </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
             <div className="text-center">
               <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-oliveGold text-white flex items-center justify-center font-bold text-xl">
                 1

@@ -66,7 +66,7 @@ const PhilosophicalCompass = ({ onContinue }) => {
         <h3 className="text-xl font-serif font-semibold text-aegeanBlue mb-4">
           How do you prefer to learn?
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {learningStyles.map((style, index) => (
             <motion.div
               key={style.id}

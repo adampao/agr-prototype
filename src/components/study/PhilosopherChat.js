@@ -772,7 +772,7 @@ const PhilosopherChat = () => {
             <h2 className="text-3xl font-serif font-bold text-aegeanBlue mb-6 text-center">
               Choose Your Philosophical Guide
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-h-[70vh] overflow-y-auto p-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 max-h-[70vh] overflow-y-auto p-2">
               {philosophers.map((philosopher) => (
                 <motion.div
                   key={philosopher.id}

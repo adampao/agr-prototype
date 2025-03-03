@@ -14,7 +14,7 @@ const AboutModal = ({ isOpen, onClose }) => {
       onClick={onClose}
     >
       <motion.div
-        className="bg-white rounded-lg shadow-xl max-w-2xl w-full p-6 relative overflow-y-auto max-h-[90vh]"
+        className="bg-white rounded-lg shadow-xl max-w-2xl w-full p-4 md:p-6 relative overflow-y-auto max-h-[90vh]"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 20 }}
@@ -22,7 +22,7 @@ const AboutModal = ({ isOpen, onClose }) => {
       >
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+          className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 p-1"
           aria-label="Close"
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -30,19 +30,19 @@ const AboutModal = ({ isOpen, onClose }) => {
           </svg>
         </button>
         
-        <h2 className="text-3xl font-serif font-bold text-aegeanBlue mb-6">
+        <h2 className="text-2xl sm:text-3xl font-serif font-bold text-aegeanBlue mb-4 sm:mb-6">
           About Ancient Greece Revisited
         </h2>
         
-        <div className="prose prose-aegeanBlue max-w-none">
-          <h3 className="text-xl text-philosophicalPurple font-serif">Our Vision</h3>
+        <div className="prose prose-aegeanBlue max-w-none text-base sm:text-lg">
+          <h3 className="text-lg sm:text-xl text-philosophicalPurple font-serif">Our Vision</h3>
           <p>
             Ancient Greece Revisited (AGR) is transforming timeless wisdom into an immersive experience for self-growth 
             and critical thinking in today's digital world. Our mission is to "Make Ancient Greece Sexy Again" by revealing 
             its wild, nuanced aspects and making them relevant for modern users.
           </p>
           
-          <h3 className="text-xl text-philosophicalPurple font-serif mt-6">The Team</h3>
+          <h3 className="text-lg sm:text-xl text-philosophicalPurple font-serif mt-4 sm:mt-6">The Team</h3>
           
           <div className="flex flex-col md:flex-row gap-6 mt-4">
             <div className="flex-1">
@@ -64,14 +64,14 @@ const AboutModal = ({ isOpen, onClose }) => {
             </div>
           </div>
           
-          <h3 className="text-xl text-philosophicalPurple font-serif mt-6">Our Approach</h3>
+          <h3 className="text-lg sm:text-xl text-philosophicalPurple font-serif mt-4 sm:mt-6">Our Approach</h3>
           <p>
             Born from a deep understanding of ancient Greek philosophy and modern technology, AGR addresses the digital 
             distress of endless content consumption without meaningful self-growth. We're creating a digital renaissance 
             of wisdom at a time when humanity craves deeper, more meaningful experiences.
           </p>
           
-          <h3 className="text-xl text-philosophicalPurple font-serif mt-6">The Oikosystem</h3>
+          <h3 className="text-lg sm:text-xl text-philosophicalPurple font-serif mt-4 sm:mt-6">The Oikosystem</h3>
           <p>
             Our platform is structured as a personal digital "Oikos" (Greek household) with three main components:
           </p>
@@ -81,7 +81,7 @@ const AboutModal = ({ isOpen, onClose }) => {
             <li><strong>The Agora:</strong> Community interaction and philosophical discourse</li>
           </ul>
           
-          <h3 className="text-xl text-philosophicalPurple font-serif mt-6">Contact Us</h3>
+          <h3 className="text-lg sm:text-xl text-philosophicalPurple font-serif mt-4 sm:mt-6">Contact Us</h3>
           <p>
             We'd love to hear from you! For inquiries, partnership opportunities, or feedback:
             <br />

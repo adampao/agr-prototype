@@ -134,7 +134,7 @@ const FeedbackCard = () => {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
-              className="bg-white rounded-lg shadow-xl max-w-md w-full p-6"
+              className="bg-white rounded-lg shadow-xl max-w-md w-full p-4 sm:p-6"
               onClick={(e) => e.stopPropagation()}
             >
               <button
