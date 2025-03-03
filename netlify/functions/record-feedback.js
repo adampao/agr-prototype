@@ -14,7 +14,28 @@ exports.handler = async function(event, context) {
     // Parse the JSON body
     const data = JSON.parse(event.body);
     
-    // Validate required fields
+    // Handle analytics data
+    if (data.type === 'analytics') {
+      console.log('Analytics data received:', JSON.stringify(data, null, 2));
+      
+      // Store analytics in Google Sheets if credentials are available
+      if (process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL && 
+          process.env.GOOGLE_PRIVATE_KEY) {
+        
+        try {
+          await storeAnalyticsInSheet(data);
+        } catch (error) {
+          console.error('Error storing analytics in Google Sheets:', error);
+        }
+      }
+      
+      return {
+        statusCode: 200,
+        body: JSON.stringify({ message: 'Analytics recorded successfully' })
+      };
+    }
+    
+    // Validate required fields for feedback submissions
     if (!data.feedback || !data.interestLevel) {
       return {
         statusCode: 400,
@@ -93,6 +114,50 @@ exports.handler = async function(event, context) {
     };
   }
 };
+
+// Function to store analytics data in Google Sheets
+async function storeAnalyticsInSheet(analyticsData) {
+  // Get the Google Sheet ID
+  const sheetId = process.env.GOOGLE_SHEET_ID && process.env.GOOGLE_SHEET_ID !== 'your_google_sheet_id_here' 
+    ? process.env.GOOGLE_SHEET_ID 
+    : '1RzNnqdEk1PxUi-Ret_uIeMaRxGXmA7xVMV6dLL28DJ4'; // Fallback to our production sheet
+  
+  // Create a JWT client using service account credentials
+  const serviceAccountAuth = new JWT({
+    email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
+    key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+    scopes: [
+      'https://www.googleapis.com/auth/spreadsheets',
+    ],
+  });
+
+  // Initialize the sheet
+  const doc = new GoogleSpreadsheet(sheetId, serviceAccountAuth);
+  await doc.loadInfo(); // Load sheet info
+  
+  // Get the analytics sheet (second sheet)
+  let sheet;
+  try {
+    sheet = doc.sheetsByIndex[1]; // Try to use the second sheet for analytics
+  } catch (error) {
+    // If second sheet doesn't exist, create it
+    sheet = await doc.addSheet({ 
+      title: 'Analytics Data',
+      headerValues: ['Timestamp', 'SessionId', 'Type', 'EventData', 'FullAnalytics'] 
+    });
+  }
+  
+  // Add a row to the sheet
+  await sheet.addRow({
+    Timestamp: analyticsData.timestamp,
+    SessionId: analyticsData.sessionId || 'Unknown',
+    Type: analyticsData.event?.type || 'Unknown',
+    EventData: JSON.stringify(analyticsData.event || {}),
+    FullAnalytics: JSON.stringify(analyticsData.analyticsData || {})
+  });
+  
+  console.log('Analytics saved to Google Sheets successfully!');
+}
 
 // Function to send feedback via email
 async function sendEmailNotification(feedbackData) {
