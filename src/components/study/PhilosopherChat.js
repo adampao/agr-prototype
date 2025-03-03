@@ -674,7 +674,7 @@ const PhilosopherChat = () => {
               </svg>
             </button>
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-full overflow-hidden">
+              <div className="w-16 h-16 rounded-full overflow-hidden shadow-md">
                 <img 
                   src={selectedPhilosopher.modernImageSrc} 
                   alt={selectedPhilosopher.name} 
@@ -734,6 +734,17 @@ const PhilosopherChat = () => {
                     transition={{ duration: 0.3 }}
                     className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
                   >
+                    {message.sender === 'philosopher' && (
+                      <div className="mr-2 flex-shrink-0">
+                        <div className="w-12 h-12 rounded-full overflow-hidden shadow-md">
+                          <img 
+                            src={messages[index].philosopherId ? philosophers.find(p => p.id === messages[index].philosopherId).modernImageSrc : selectedPhilosopher.modernImageSrc}
+                            alt={messages[index].philosopherId ? philosophers.find(p => p.id === messages[index].philosopherId).name : selectedPhilosopher.name}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      </div>
+                    )}
                     <div 
                       className={`max-w-[80%] rounded-lg p-3 ${
                         message.sender === 'user' 
