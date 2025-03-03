@@ -15,10 +15,13 @@ The feedback system collects user feedback and interaction data from the AGR Pla
 
 For quick setup using our pre-configured Google Sheet:
 
-1. The service account JSON file is already included in the project as `agr-demo-feedback-6db66d264a69.json`
-2. The environment variables are already set in the `.env` file
-3. Run `npm run test:sheets` to verify the Google Sheets integration works
-4. Make sure you've shared [this Google Sheet](https://docs.google.com/spreadsheets/d/1RzNnqdEk1PxUi-Ret_uIeMaRxGXmA7xVMV6dLL28DJ4/edit) with the service account email: `agr-demo-feedback@agr-demo-feedback.iam.gserviceaccount.com`
+1. The service account JSON file must be locally kept as `agr-demo-feedback-6db66d264a69.json` (not tracked in git)
+2. Run `npm run credentials:export` to extract environment variables from the JSON file
+3. Set these environment variables in your Netlify dashboard or in a local `.env` file
+4. Run `npm run test:sheets` to verify the Google Sheets integration works
+5. Make sure you've shared [this Google Sheet](https://docs.google.com/spreadsheets/d/1RzNnqdEk1PxUi-Ret_uIeMaRxGXmA7xVMV6dLL28DJ4/edit) with the service account email: `agr-demo-feedback@agr-demo-feedback.iam.gserviceaccount.com`
+
+**IMPORTANT: Never commit the JSON credentials file to git for security reasons!**
 
 ## Detailed Setup Instructions (If Creating Your Own Sheet)
 
@@ -101,9 +104,12 @@ If you want to test the functions locally:
 
 ## Security Considerations
 
-- The GOOGLE_PRIVATE_KEY is sensitive information. Only store it in environment variables.
+- The service account credentials (JSON file and private key) are extremely sensitive and must NEVER be committed to git.
+- Always use environment variables for credentials, never hardcode them or include them in tracked files.
+- The `agr-demo-feedback-6db66d264a69.json` file is specifically excluded from git via .gitignore.
 - The system collects anonymous usage data by default, with email being optional.
 - No personally identifiable information is collected without user consent.
+- For Netlify deployments, set the environment variables securely through the Netlify dashboard or CLI.
 
 ## Need Help?
 
