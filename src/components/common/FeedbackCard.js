@@ -13,13 +13,14 @@ const FeedbackCard = () => {
   const [hasGivenFeedback, setHasGivenFeedback] = useState(hasFeedback());
   const [showTrigger, setShowTrigger] = useState(false);
   
-  // Only show the feedback trigger after the user has been on the site for 3 minutes
+  // Only show the feedback trigger after the user has been on the site for a short time
   useEffect(() => {
     const timer = setTimeout(() => {
       if (!hasGivenFeedback) {
         setShowTrigger(true);
+        console.log("Setting showTrigger to true"); // Debugging log
       }
-    }, 180000); // 3 minutes (was 60 seconds)
+    }, 30000); // 30 seconds (reduced from 3 minutes)
     
     return () => clearTimeout(timer);
   }, [hasGivenFeedback]);
@@ -97,6 +98,9 @@ const FeedbackCard = () => {
     setIsOpen(false);
   };
   
+  // Debug log for conditional rendering
+  console.log("FeedbackCard rendering:", { showTrigger, isOpen, hasGivenFeedback });
+  
   if (!showTrigger && !isOpen) {
     return null;
   }
@@ -108,13 +112,13 @@ const FeedbackCard = () => {
         {!isOpen && showTrigger && !hasGivenFeedback && (
           <motion.div
             initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 0.5, y: 0 }}
+            animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 50 }}
             className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 w-auto"
           >
             <button
               onClick={() => setIsOpen(true)}
-              className="bg-oliveGold/70 hover:bg-oliveGold/90 text-white px-4 py-2 rounded-full flex items-center shadow-lg transition-colors backdrop-blur-sm"
+              className="bg-oliveGold/80 hover:bg-oliveGold text-white px-4 py-2 rounded-full flex items-center shadow-lg transition-colors backdrop-blur-sm"
             >
               <span className="mr-2">💬</span>
               <span className="whitespace-nowrap">Share Your Thoughts</span>
