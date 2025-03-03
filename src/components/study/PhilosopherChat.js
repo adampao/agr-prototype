@@ -136,17 +136,85 @@ const PhilosopherChat = () => {
   const [isGeneratingAudio, setIsGeneratingAudio] = useState(false);
   const [voiceEnabled, setVoiceEnabled] = useState(false);
   const [pointsAwarded, setPointsAwarded] = useState(false);
+  const [achievementUnlocked, setAchievementUnlocked] = useState(null);
+  
+  // Achievement definitions
+  const achievements = [
+    { 
+      id: 'sophia_novice',
+      name: 'Wisdom Novice', 
+      description: 'Accumulated 5 Sophia Points on your philosophical journey',
+      icon: '🔍',
+      threshold: 5
+    },
+    {
+      id: 'sophia_seeker',
+      name: 'Wisdom Seeker',
+      description: 'Accumulated 10 Sophia Points through philosophical inquiry',
+      icon: '🦉',
+      threshold: 10
+    }
+  ];
+
+  // Check for unlocked achievements based on points
+  const checkAchievements = (points) => {
+    if (!currentUser || !currentUser.achievements) return null;
+    
+    // Get list of achievement IDs user already has
+    const userAchievementIds = currentUser.achievements.map(a => a.id);
+    
+    // Find achievements that should be unlocked but user doesn't have yet
+    const newAchievements = achievements.filter(achievement => 
+      points >= achievement.threshold && 
+      !userAchievementIds.includes(achievement.id)
+    );
+    
+    return newAchievements.length > 0 ? newAchievements[0] : null;
+  };
   
   // Function to award Sophia points to the user
   const awardSophiaPoints = (points = 1) => {
     if (currentUser) {
-      const updatedUser = {
+      // Calculate new points total
+      const newTotal = (currentUser.stats.sophiaPoints || 0) + points;
+      
+      // Check for achievements
+      const newAchievement = checkAchievements(newTotal);
+      
+      // Build updated user object
+      let updatedUser = {
         ...currentUser,
         stats: {
           ...currentUser.stats,
-          sophiaPoints: (currentUser.stats.sophiaPoints || 0) + points
+          sophiaPoints: newTotal
         }
       };
+      
+      // Add achievement if earned
+      if (newAchievement) {
+        const achievementToAdd = {
+          ...newAchievement,
+          date: new Date().toISOString()
+        };
+        
+        updatedUser = {
+          ...updatedUser,
+          achievements: [
+            ...(currentUser.achievements || []),
+            achievementToAdd
+          ]
+        };
+        
+        // Show achievement notification
+        setAchievementUnlocked(newAchievement);
+        
+        // Clear achievement notification after a delay
+        setTimeout(() => {
+          setAchievementUnlocked(null);
+        }, 8000);
+      }
+      
+      // Update user profile
       updateUserProfile(updatedUser);
       setPointsAwarded(true);
       
@@ -888,6 +956,23 @@ const PhilosopherChat = () => {
                   <p className="font-medium">+1 Sophia Point Awarded!</p>
                   <p className="text-sm">For philosophical dialogue with {selectedPhilosopher?.name}</p>
                 </div>
+              </motion.div>
+            )}
+            
+            {/* Achievement unlocked notification */}
+            {achievementUnlocked && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                className="bg-philosophicalPurple/10 border border-philosophicalPurple/30 text-philosophicalPurple rounded-lg p-4 mb-4"
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="font-serif font-semibold text-lg">Achievement Unlocked!</h4>
+                  <div className="text-3xl">{achievementUnlocked.icon}</div>
+                </div>
+                <p className="font-medium mb-1">{achievementUnlocked.name}</p>
+                <p className="text-sm text-philosophicalPurple/80">{achievementUnlocked.description}</p>
               </motion.div>
             )}
             

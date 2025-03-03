@@ -7,14 +7,106 @@ import DailyChallenge from '../components/journal/DailyChallenge';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
 import { sendMessageToPhilosopher, getDailyChallenge } from '../services/claudeApi';
+import { useAuth } from '../services/AuthContext';
 
 const JournalPage = () => {
+  const { currentUser, updateUserProfile } = useAuth();
   const [entries, setEntries] = useState([]);
   const [dailyChallenge, setDailyChallenge] = useState(null);
   const [view, setView] = useState('entries'); // 'entries', 'challenges'
   const [isLoading, setIsLoading] = useState(false);
   const [showOverlay, setShowOverlay] = useState(false);
   const [currentPhilosopher, setCurrentPhilosopher] = useState('aristotle'); // Default philosopher
+  const [pointsAwarded, setPointsAwarded] = useState(false);
+  const [achievementUnlocked, setAchievementUnlocked] = useState(null);
+  
+  // Achievement definitions
+  const achievements = [
+    { 
+      id: 'sophia_novice',
+      name: 'Wisdom Novice', 
+      description: 'Accumulated 5 Sophia Points on your philosophical journey',
+      icon: '🔍',
+      threshold: 5
+    },
+    {
+      id: 'sophia_seeker',
+      name: 'Wisdom Seeker',
+      description: 'Accumulated 10 Sophia Points through philosophical inquiry',
+      icon: '🦉',
+      threshold: 10
+    }
+  ];
+
+  // Check for unlocked achievements based on points
+  const checkAchievements = (points) => {
+    if (!currentUser || !currentUser.achievements) return null;
+    
+    // Get list of achievement IDs user already has
+    const userAchievementIds = currentUser.achievements.map(a => a.id);
+    
+    // Find achievements that should be unlocked but user doesn't have yet
+    const newAchievements = achievements.filter(achievement => 
+      points >= achievement.threshold && 
+      !userAchievementIds.includes(achievement.id)
+    );
+    
+    return newAchievements.length > 0 ? newAchievements[0] : null;
+  };
+  
+  // Function to award Sophia points to the user
+  const awardSophiaPoints = (points = 1) => {
+    if (currentUser) {
+      // Calculate new points total
+      const newTotal = (currentUser.stats.sophiaPoints || 0) + points;
+      
+      // Check for achievements
+      const newAchievement = checkAchievements(newTotal);
+      
+      // Build updated user object
+      let updatedUser = {
+        ...currentUser,
+        stats: {
+          ...currentUser.stats,
+          sophiaPoints: newTotal,
+          entriesCount: (currentUser.stats.entriesCount || 0) + 1
+        }
+      };
+      
+      // Add achievement if earned
+      if (newAchievement) {
+        const achievementToAdd = {
+          ...newAchievement,
+          date: new Date().toISOString()
+        };
+        
+        updatedUser = {
+          ...updatedUser,
+          achievements: [
+            ...(currentUser.achievements || []),
+            achievementToAdd
+          ]
+        };
+        
+        // Show achievement notification
+        setAchievementUnlocked(newAchievement);
+        
+        // Clear achievement notification after a delay
+        setTimeout(() => {
+          setAchievementUnlocked(null);
+        }, 8000);
+      }
+      
+      // Update user profile
+      updateUserProfile(updatedUser);
+      setPointsAwarded(true);
+      
+      // Reset the points awarded flag after a few seconds
+      setTimeout(() => {
+        setPointsAwarded(false);
+      }, 5000);
+    }
+  };
   
   useEffect(() => {
     // Load entries and challenges from localStorage
@@ -92,6 +184,10 @@ const JournalPage = () => {
       };
       
       setEntries([newEntry, ...entries]);
+      
+      // Award Sophia points for journal entry
+      awardSophiaPoints(1);
+      
       setIsLoading(false);
       setShowOverlay(false);
     } catch (error) {
@@ -108,6 +204,10 @@ const JournalPage = () => {
       };
       
       setEntries([newEntry, ...entries]);
+      
+      // Award Sophia points for journal entry even on fallback
+      awardSophiaPoints(1);
+      
       setIsLoading(false);
       setShowOverlay(false);
     }
@@ -149,6 +249,9 @@ const JournalPage = () => {
       };
       
       setEntries([newEntry, ...entries]);
+      
+      // Award Sophia points for completing a challenge
+      awardSophiaPoints(2); // Challenges are worth more points
       
       // Mark the challenge as completed
       setDailyChallenge({
@@ -277,6 +380,39 @@ const JournalPage = () => {
                       </Button>
                     </div>
                   </Card>
+                )}
+                
+                {/* Points awarded notification */}
+                {pointsAwarded && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    className="fixed bottom-20 right-4 bg-oliveGold/10 border border-oliveGold/30 text-oliveGold rounded-lg p-3 mb-4 flex items-center shadow-lg"
+                  >
+                    <span className="text-2xl mr-2">✨</span>
+                    <div>
+                      <p className="font-medium">+1 Sophia Point Awarded!</p>
+                      <p className="text-sm">For your philosophical journaling</p>
+                    </div>
+                  </motion.div>
+                )}
+                
+                {/* Achievement unlocked notification */}
+                {achievementUnlocked && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    className="fixed bottom-20 left-4 bg-philosophicalPurple/10 border border-philosophicalPurple/30 text-philosophicalPurple rounded-lg p-4 mb-4 shadow-lg max-w-xs"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-serif font-semibold text-lg">Achievement Unlocked!</h4>
+                      <div className="text-3xl">{achievementUnlocked.icon}</div>
+                    </div>
+                    <p className="font-medium mb-1">{achievementUnlocked.name}</p>
+                    <p className="text-sm text-philosophicalPurple/80">{achievementUnlocked.description}</p>
+                  </motion.div>
                 )}
               </motion.div>
             ) : (
