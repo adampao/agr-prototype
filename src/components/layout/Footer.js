@@ -122,7 +122,7 @@ const Footer = () => {
           </p>
         </div>
         <div className="mt-4 text-center text-xs text-aegeanBlue/60">
-          <p>Demo Version - For Investor Presentation Only</p>
+          <p>Demo Version - For Presentation Only</p>
         </div>
       </div>
       
