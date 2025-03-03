@@ -1,14 +1,33 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import Welcome from '../components/onboarding/Welcome';
 import OracleQuestion from '../components/onboarding/OracleQuestion';
 import PhilosophicalCompass from '../components/onboarding/PhilosophicalCompass';
 import Personalization from '../components/onboarding/Personalization';
+import Button from '../components/common/Button';
+import AuthModal from '../components/auth/AuthModal';
+import { useAuth } from '../services/AuthContext';
 
 const OnboardingPage = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [userPreferences, setUserPreferences] = useState({});
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [authMode, setAuthMode] = useState('signup');
+  const { currentUser, updateUserProfile } = useAuth();
+  
+  // Check if user is already logged in when component mounts
+  useEffect(() => {
+    if (currentUser) {
+      // If user has preferences already set, use them as a starting point
+      if (currentUser.preferences) {
+        setUserPreferences(prev => ({
+          ...prev,
+          ...currentUser.preferences
+        }));
+      }
+    }
+  }, [currentUser]);
   
   const handleContinueFromWelcome = () => {
     setStep(2);
@@ -25,8 +44,42 @@ const OnboardingPage = () => {
   };
   
   const handleCompletionFromPersonalization = () => {
-    // In a real app, we would save the user preferences to the backend here
-    // For the prototype, we'll just redirect to the journal page
+    // Save preferences to user profile if logged in
+    if (currentUser) {
+      updateUserProfile({
+        preferences: userPreferences
+      });
+    } else {
+      // If not logged in, prompt to create account to save preferences
+      setAuthModalOpen(true);
+      // Store preferences temporarily in localStorage
+      localStorage.setItem('tempUserPreferences', JSON.stringify(userPreferences));
+    }
+    
+    // Redirect to journal page regardless
+    navigate('/journal');
+  };
+  
+  const handleSkipOnboarding = () => {
+    // Set default preferences for skipped users
+    const defaultPreferences = {
+      reason: 'general interest',
+      learningStyle: 'text',
+      interests: ['ethics'],
+      lifeGoal: 'knowledge',
+      skippedOnboarding: true
+    };
+    
+    setUserPreferences(defaultPreferences);
+    
+    // Save to user profile if logged in
+    if (currentUser) {
+      updateUserProfile({
+        preferences: defaultPreferences
+      });
+    }
+    
+    // Navigate directly to the journal
     navigate('/journal');
   };
   
@@ -57,6 +110,16 @@ const OnboardingPage = () => {
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div className="text-sm text-aegeanBlue/60">
             &copy; {new Date().getFullYear()} Ancient Greece Revisited
+            <span className="ml-4">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={handleSkipOnboarding} 
+                className="text-aegeanBlue/60 hover:text-aegeanBlue"
+              >
+                Skip Onboarding
+              </Button>
+            </span>
           </div>
           <div className="text-sm">
           <Link to="/privacy" className="text-aegeanBlue hover:text-aegeanBlue/80">Privacy Policy</Link>
@@ -65,6 +128,13 @@ const OnboardingPage = () => {
           </div>
         </div>
       </footer>
+      
+      {/* Auth Modal */}
+      <AuthModal
+        isOpen={authModalOpen}
+        onClose={() => setAuthModalOpen(false)}
+        initialMode={authMode}
+      />
     </div>
   );
 };

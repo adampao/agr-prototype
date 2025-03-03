@@ -20,7 +20,7 @@ const Welcome = ({ onContinue }) => {
         animate={{ opacity: 1 }}
         transition={{ delay: 0.3, duration: 0.8 }}
       >
-        "Ancient Wisdom meets Modern Intelligence"
+        "Making Ancient Greece Sexy Again"
       </motion.p>
       
       <motion.div
@@ -40,7 +40,7 @@ const Welcome = ({ onContinue }) => {
             onClick={onContinue} 
             size="lg"
           >
-            Begin Your Journey
+            Continue to Personalization
           </Button>
           
           <Button 

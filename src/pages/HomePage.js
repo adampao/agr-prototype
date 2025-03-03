@@ -1,10 +1,26 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import Button from '../components/common/Button';
 import Card from '../components/common/Card';
+import PhilosophicalCompassPreview from '../components/common/PhilosophicalCompassPreview';
+import AuthModal from '../components/auth/AuthModal';
+import { useAuth } from '../services/AuthContext';
 
 const HomePage = () => {
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [authMode, setAuthMode] = useState('signin');
+  const { currentUser } = useAuth();
+  
+  const openSignIn = () => {
+    setAuthMode('signin');
+    setAuthModalOpen(true);
+  };
+
+  const openSignUp = () => {
+    setAuthMode('signup');
+    setAuthModalOpen(true);
+  };
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
@@ -48,6 +64,22 @@ const HomePage = () => {
                 }
               }}>Join the Waitlist</Button>
             </motion.div>
+            
+            <motion.div
+              className="mt-6 flex flex-col sm:flex-row justify-center gap-4"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.8, duration: 0.8 }}
+            >
+              {!currentUser ? (
+                <>
+                  <Button variant="text" size="md" onClick={openSignIn}>Sign In</Button>
+                  <Button variant="text" size="md" onClick={openSignUp}>Create Account</Button>
+                </>
+              ) : (
+                <p className="text-sm text-aegeanBlue/80">Welcome back, {currentUser.name}</p>
+              )}
+            </motion.div>
           </div>
         </div>
       </div>
@@ -60,7 +92,7 @@ const HomePage = () => {
               The Path to Wisdom
             </h2>
             <p className="max-w-2xl mx-auto text-lg text-aegeanBlue/80">
-              Our platform connects you with ancient Greek philosophy through cutting-edge AI technology.
+              Our platform connects you with ancient Greek philosophy, history and mythology through cutting-edge AI technology.
             </p>
           </div>
           
@@ -180,78 +212,8 @@ const HomePage = () => {
         </div>
       </div>
       
-      {/* Testimonials Section */}
-      <div className="py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-serif font-bold text-aegeanBlue mb-4">
-              What Our Users Say
-            </h2>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <Card>
-              <div className="mb-4">
-                <div className="flex text-oliveGold">
-                  {[...Array(5)].map((_, i) => (
-                    <svg key={i} xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                    </svg>
-                  ))}
-                </div>
-              </div>
-              <p className="text-aegeanBlue/80 mb-4 italic">
-                "If it's interactive and I can apply it practically, I'd probably use it, especially if it offered daily insights or challenges."
-              </p>
-              <div className="flex items-center">
-                <div className="font-medium text-aegeanBlue">Ben Hamnett, 38</div>
-                <div className="mx-2 text-aegeanBlue/40">|</div>
-                <div className="text-aegeanBlue/60">IT Project Manager</div>
-              </div>
-            </Card>
-            
-            <Card>
-              <div className="mb-4">
-                <div className="flex text-oliveGold">
-                  {[...Array(5)].map((_, i) => (
-                    <svg key={i} xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                    </svg>
-                  ))}
-                </div>
-              </div>
-              <p className="text-aegeanBlue/80 mb-4 italic">
-                "As a therapist, when I feel stuck with a client, I could see myself using it from the helper's perspective for guidance."
-              </p>
-              <div className="flex items-center">
-                <div className="font-medium text-aegeanBlue">Vanessa Hodgson, 40</div>
-                <div className="mx-2 text-aegeanBlue/40">|</div>
-                <div className="text-aegeanBlue/60">Psychotherapist</div>
-              </div>
-            </Card>
-            
-            <Card>
-              <div className="mb-4">
-                <div className="flex text-oliveGold">
-                  {[...Array(5)].map((_, i) => (
-                    <svg key={i} xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                    </svg>
-                  ))}
-                </div>
-              </div>
-              <p className="text-aegeanBlue/80 mb-4 italic">
-                "Using an ancient knowledge base to run current real world problems through to get an answer that you wouldn't get from the current life perspective."
-              </p>
-              <div className="flex items-center">
-                <div className="font-medium text-aegeanBlue">Mate Kovacs, 42</div>
-                <div className="mx-2 text-aegeanBlue/40">|</div>
-                <div className="text-aegeanBlue/60">Business Owner</div>
-              </div>
-            </Card>
-          </div>
-        </div>
-      </div>
+      {/* Philosophical Compass Preview Section */}
+      <PhilosophicalCompassPreview />
       
       {/* CTA Section */}
       <div className="py-16 bg-philosophicalPurple/10">
@@ -330,6 +292,13 @@ const HomePage = () => {
           </form>
         </div>
       </dialog>
+      
+      {/* Auth Modal */}
+      <AuthModal
+        isOpen={authModalOpen}
+        onClose={() => setAuthModalOpen(false)}
+        initialMode={authMode}
+      />
     </div>
   );
 };

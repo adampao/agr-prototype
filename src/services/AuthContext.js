@@ -55,11 +55,26 @@ export const AuthProvider = ({ children }) => {
 
   // Sign up function
   const signup = (email, name, password) => {
+    // Check if we have temporary preferences from onboarding
+    let tempPreferences;
+    try {
+      const storedPrefs = localStorage.getItem('tempUserPreferences');
+      if (storedPrefs) {
+        tempPreferences = JSON.parse(storedPrefs);
+        // Remove temp preferences after we've retrieved them
+        localStorage.removeItem('tempUserPreferences');
+      }
+    } catch (e) {
+      console.error("Error retrieving temporary preferences:", e);
+    }
+    
     const newUser = {
       ...defaultUser,
       email,
       name: name || defaultUser.name,
       joinDate: new Date().toISOString(),
+      // If there are temporary preferences from onboarding, use those
+      preferences: tempPreferences || defaultUser.preferences
     };
     
     // Store user in localStorage

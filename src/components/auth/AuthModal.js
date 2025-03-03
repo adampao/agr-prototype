@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../services/AuthContext';
 
 const AuthModal = ({ isOpen, onClose, initialMode = 'signin' }) => {
@@ -10,6 +10,17 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'signin' }) => {
   const [loading, setLoading] = useState(false);
   
   const { signin, signup } = useAuth();
+  
+  // Reset form when modal opens or mode changes
+  useEffect(() => {
+    if (isOpen) {
+      setMode(initialMode);
+      setEmail('');
+      setName('');
+      setPassword('');
+      setError('');
+    }
+  }, [isOpen, initialMode]);
   
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -47,13 +58,17 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'signin' }) => {
     setLoading(false);
   };
   
+  const handleClose = () => {
+    if (onClose) onClose();
+  };
+  
   if (!isOpen) return null;
   
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6 relative">
         <button 
-          onClick={onClose}
+          onClick={handleClose}
           className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
           aria-label="Close"
         >
