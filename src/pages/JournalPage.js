@@ -108,20 +108,25 @@ const JournalPage = () => {
     }
   };
   
+  // Load entries on component mount and when currentUser changes
   useEffect(() => {
     // Only load journal entries if user is authenticated
-    // This ensures a new user starts with zero entries
     if (currentUser) {
       // Use a user-specific key for journal entries
       const userEntriesKey = `journalEntries_${currentUser.email || 'default'}`;
       
-      // Load entries from localStorage
-      const savedEntries = localStorage.getItem(userEntriesKey);
-      
-      if (savedEntries) {
-        setEntries(JSON.parse(savedEntries));
-      } else {
-        // Clear entries for new users
+      try {
+        // Load entries from localStorage
+        const savedEntries = localStorage.getItem(userEntriesKey);
+        
+        if (savedEntries) {
+          const parsedEntries = JSON.parse(savedEntries);
+          setEntries(parsedEntries);
+        } else {
+          setEntries([]);
+        }
+      } catch (error) {
+        console.error('Error loading entries from localStorage:', error);
         setEntries([]);
       }
     } else {
@@ -142,9 +147,16 @@ const JournalPage = () => {
   
   // Save entries to localStorage when updated - use user-specific key
   useEffect(() => {
-    if (currentUser && entries.length > 0) {
-      const userEntriesKey = `journalEntries_${currentUser.email || 'default'}`;
-      localStorage.setItem(userEntriesKey, JSON.stringify(entries));
+    if (currentUser && entries) {
+      try {
+        const userEntriesKey = `journalEntries_${currentUser.email || 'default'}`;
+        
+        // Store entries in localStorage
+        const entriesJson = JSON.stringify(entries);
+        localStorage.setItem(userEntriesKey, entriesJson);
+      } catch (error) {
+        console.error('Error saving entries to localStorage:', error);
+      }
     }
   }, [entries, currentUser]);
   
@@ -199,7 +211,20 @@ const JournalPage = () => {
         tags: [type]
       };
       
-      setEntries([newEntry, ...entries]);
+      // Update entries state with new entry
+      const updatedEntries = [newEntry, ...entries];
+      setEntries(updatedEntries);
+      
+      // Also directly save to localStorage to ensure sync
+      if (currentUser) {
+        try {
+          const userEntriesKey = `journalEntries_${currentUser.email || 'default'}`;
+          const entriesJson = JSON.stringify(updatedEntries);
+          localStorage.setItem(userEntriesKey, entriesJson);
+        } catch (error) {
+          console.error('Error in direct save to localStorage:', error);
+        }
+      }
       
       // Award Sophia points for journal entry
       awardSophiaPoints(1);
@@ -219,7 +244,20 @@ const JournalPage = () => {
         tags: [type]
       };
       
-      setEntries([newEntry, ...entries]);
+      // Update entries state with new entry
+      const updatedEntries = [newEntry, ...entries];
+      setEntries(updatedEntries);
+      
+      // Also directly save to localStorage to ensure sync
+      if (currentUser) {
+        try {
+          const userEntriesKey = `journalEntries_${currentUser.email || 'default'}`;
+          const entriesJson = JSON.stringify(updatedEntries);
+          localStorage.setItem(userEntriesKey, entriesJson);
+        } catch (error) {
+          console.error('Error in fallback save to localStorage:', error);
+        }
+      }
       
       // Award Sophia points for journal entry even on fallback
       awardSophiaPoints(1);
@@ -230,13 +268,39 @@ const JournalPage = () => {
   };
   
   const handleSaveReflection = (entryId, reflection) => {
-    setEntries(entries.map(entry => 
+    const updatedEntries = entries.map(entry => 
       entry.id === entryId ? { ...entry, reflection } : entry
-    ));
+    );
+    
+    setEntries(updatedEntries);
+    
+    // Directly save to localStorage
+    if (currentUser) {
+      try {
+        const userEntriesKey = `journalEntries_${currentUser.email || 'default'}`;
+        const entriesJson = JSON.stringify(updatedEntries);
+        localStorage.setItem(userEntriesKey, entriesJson);
+      } catch (error) {
+        console.error('Error in reflection save to localStorage:', error);
+      }
+    }
   };
   
   const handleDeleteEntry = (entryId) => {
-    setEntries(entries.filter(entry => entry.id !== entryId));
+    const updatedEntries = entries.filter(entry => entry.id !== entryId);
+    
+    setEntries(updatedEntries);
+    
+    // Directly save to localStorage
+    if (currentUser) {
+      try {
+        const userEntriesKey = `journalEntries_${currentUser.email || 'default'}`;
+        const entriesJson = JSON.stringify(updatedEntries);
+        localStorage.setItem(userEntriesKey, entriesJson);
+      } catch (error) {
+        console.error('Error in delete save to localStorage:', error);
+      }
+    }
   };
   
   const handleCompleteChallenge = async (challengeId, response) => {
@@ -264,7 +328,20 @@ const JournalPage = () => {
         tags: ['Challenge', dailyChallenge.category]
       };
       
-      setEntries([newEntry, ...entries]);
+      // Update entries state with new entry
+      const updatedEntries = [newEntry, ...entries];
+      setEntries(updatedEntries);
+      
+      // Also directly save to localStorage to ensure sync
+      if (currentUser) {
+        try {
+          const userEntriesKey = `journalEntries_${currentUser.email || 'default'}`;
+          const entriesJson = JSON.stringify(updatedEntries);
+          localStorage.setItem(userEntriesKey, entriesJson);
+        } catch (error) {
+          console.error('Error in challenge save to localStorage:', error);
+        }
+      }
       
       // Award Sophia points for completing a challenge
       awardSophiaPoints(2); // Challenges are worth more points
@@ -300,6 +377,7 @@ const JournalPage = () => {
     setCurrentPhilosopher(philosopherId);
   };
   
+
   return (
     <Layout>
       <div className="min-h-screen bg-marbleWhite">
