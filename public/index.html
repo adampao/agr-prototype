@@ -44,7 +44,7 @@
       To create a production bundle, use `npm run build` or `yarn build`.
     -->
     
-    <!-- Hidden Netlify Form -->
+    <!-- Hidden Netlify Forms -->
     <form name="waitlist" netlify netlify-honeypot="bot-field" hidden>
       <p>
         <label>Email <input type="email" name="email" /></label>
@@ -54,6 +54,21 @@
       </p>
       <p>
         <label>Interest <input type="checkbox" name="interest" /></label>
+      </p>
+    </form>
+    
+    <form name="feedback" netlify netlify-honeypot="bot-field" hidden>
+      <p>
+        <label>Email <input type="email" name="email" /></label>
+      </p>
+      <p>
+        <label>Liked Feature <input type="text" name="liked-feature" /></label>
+      </p>
+      <p>
+        <label>Feedback <textarea name="feedback-text"></textarea></label>
+      </p>
+      <p>
+        <label>Contact OK <input type="checkbox" name="contact-ok" /></label>
       </p>
     </form>
   </body>
