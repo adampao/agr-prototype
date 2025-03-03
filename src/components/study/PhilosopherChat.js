@@ -8,6 +8,7 @@ import { analyzeConversation, shouldSuggestPhilosopherSwitch } from './TopicDete
 import AudioPlayer from '../common/AudioPlayer';
 import SequentialAudioPlayer from '../common/SequentialAudioPlayer';
 import { useAuth } from '../../services/AuthContext';
+import { trackFeatureUse } from '../../services/analyticsService';
 
 const philosophers = [
   { 
@@ -397,8 +398,12 @@ const PhilosopherChat = () => {
     }
   }, [selectedPhilosopher, currentUser, userGreeted, messages.length, voiceEnabled]);
 
+  
   const handleSendMessage = async () => {
     if (inputValue.trim() && selectedPhilosopher) {
+      // Track this interaction for analytics
+      trackFeatureUse(`philosopher_chat_${selectedPhilosopher.id}`);
+      
       // Add user message
       const userMessage = { sender: 'user', text: inputValue.trim() };
       setMessages(prevMessages => [...prevMessages, userMessage]);
@@ -833,13 +838,30 @@ const PhilosopherChat = () => {
                   {useClaudeApi ? "AI Mode" : "Demo Mode"}
                 </button>
                 <button 
-                  onClick={() => setVoiceEnabled(!voiceEnabled)}
+                  onClick={() => {
+                    if (!voiceEnabled) {
+                      // Track attempt to use voice feature
+                      trackFeatureUse('voice_feature_attempt');
+                      
+                      // Prompt for password when trying to turn voice on
+                      const password = prompt("Enter password to enable voice feature:");
+                      if (password === "agr-voice-on") {
+                        setVoiceEnabled(true);
+                        trackFeatureUse('voice_feature_enabled');
+                      } else {
+                        alert("Incorrect password. Voice feature remains disabled.");
+                      }
+                    } else {
+                      // No password required to turn voice off
+                      setVoiceEnabled(false);
+                    }
+                  }}
                   className={`text-xs p-1 rounded-md transition-colors ${
                     voiceEnabled ? 'bg-philosophicalPurple/20 text-philosophicalPurple' : 'bg-gray-200 text-gray-600'
                   }`}
-                  title={voiceEnabled ? "Voice enabled" : "Voice disabled"}
+                  title={voiceEnabled ? "Voice enabled" : "Voice disabled (password required)"}
                 >
-                  {voiceEnabled ? "Voice On" : "Voice Off"}
+                  {voiceEnabled ? "Voice On" : "Voice Off 🔒"}
                 </button>
               </div>
             </div>

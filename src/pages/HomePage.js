@@ -52,9 +52,15 @@ const HomePage = () => {
               animate={{ opacity: 1 }}
               transition={{ delay: 0.6, duration: 0.8 }}
             >
-              <Link to="/onboarding">
-                <Button size="lg">Begin Your Journey</Button>
-              </Link>
+              {currentUser ? (
+                <Link to="/journal">
+                  <Button size="lg">Continue Your Journey</Button>
+                </Link>
+              ) : (
+                <Link to="/onboarding">
+                  <Button size="lg">Begin Your Journey</Button>
+                </Link>
+              )}
               <Button variant="outline" size="lg" onClick={() => {
                 if (typeof window.HTMLDialogElement === 'function') {
                   document.getElementById('waitlist-modal').showModal();
@@ -224,9 +230,15 @@ const HomePage = () => {
           <p className="max-w-2xl mx-auto text-lg text-aegeanBlue/80 mb-8">
             Join thousands of seekers exploring ancient wisdom with modern technology.
           </p>
-          <Link to="/onboarding">
-            <Button size="lg">Start Now</Button>
-          </Link>
+          {currentUser ? (
+            <Link to="/journal">
+              <Button size="lg">Continue Your Journey</Button>
+            </Link>
+          ) : (
+            <Link to="/onboarding">
+              <Button size="lg">Start Now</Button>
+            </Link>
+          )}
         </div>
       </div>
 

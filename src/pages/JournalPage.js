@@ -8,6 +8,7 @@ import Card from '../components/common/Card';
 import Button from '../components/common/Button';
 import { sendMessageToPhilosopher, getDailyChallenge } from '../services/claudeApi';
 import { useAuth } from '../services/AuthContext';
+import { trackFeatureUse } from '../services/analyticsService';
 
 const JournalPage = () => {
   const { currentUser, updateUserProfile } = useAuth();
@@ -259,6 +260,9 @@ const JournalPage = () => {
   const handleSaveCapture = async (content, type = 'reflection') => {
     setIsLoading(true);
     
+    // Track the journal entry creation for analytics
+    trackFeatureUse('journal_entry_created');
+    
     try {
       // Get AI insight using Anthropic's API
       const philosopherResponse = await sendMessageToPhilosopher(
@@ -388,6 +392,9 @@ const JournalPage = () => {
   
   const handleCompleteChallenge = async (challengeId, response) => {
     setIsLoading(true);
+    
+    // Track the challenge completion for analytics
+    trackFeatureUse('daily_challenge_completed');
     
     try {
       // Get AI insight on the challenge response

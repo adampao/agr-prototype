@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import AboutModal from '../common/AboutModal';
 
 const Footer = () => {
   const location = useLocation();
   const [isOnboardingPage, setIsOnboardingPage] = useState(false);
   const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
+  const [aboutModalOpen, setAboutModalOpen] = useState(false);
   const [formSubmitted, setFormSubmitted] = useState(false);
 
   useEffect(() => {
@@ -27,6 +29,14 @@ const Footer = () => {
     setTimeout(() => {
       setFormSubmitted(false);
     }, 1000);
+  };
+  
+  const openAboutModal = () => {
+    setAboutModalOpen(true);
+  };
+
+  const closeAboutModal = () => {
+    setAboutModalOpen(false);
   };
   
   const handleSubmit = (e) => {
@@ -61,15 +71,12 @@ const Footer = () => {
             <Link to="/" className="text-aegeanBlue hover:text-aegeanBlue/80">
               Home
             </Link>
-            <Link to="/about" className="text-aegeanBlue hover:text-aegeanBlue/80">
+            <button 
+              onClick={openAboutModal}
+              className="text-aegeanBlue hover:text-aegeanBlue/80 cursor-pointer"
+            >
               About
-            </Link>
-            <Link to="/privacy" className="text-aegeanBlue hover:text-aegeanBlue/80">
-              Privacy
-            </Link>
-            <Link to="/terms" className="text-aegeanBlue hover:text-aegeanBlue/80">
-              Terms
-            </Link>
+            </button>
             <button 
               onClick={openFeedbackModal}
               className="text-aegeanBlue hover:text-aegeanBlue/80 cursor-pointer"
@@ -190,6 +197,9 @@ const Footer = () => {
           </div>
         </div>
       )}
+      
+      {/* About Modal */}
+      <AboutModal isOpen={aboutModalOpen} onClose={closeAboutModal} />
     </footer>
   );
 };
