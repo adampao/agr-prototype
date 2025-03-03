@@ -112,11 +112,17 @@ const JournalPage = () => {
     // Only load journal entries if user is authenticated
     // This ensures a new user starts with zero entries
     if (currentUser) {
+      // Use a user-specific key for journal entries
+      const userEntriesKey = `journalEntries_${currentUser.email || 'default'}`;
+      
       // Load entries from localStorage
-      const savedEntries = localStorage.getItem('journalEntries');
+      const savedEntries = localStorage.getItem(userEntriesKey);
       
       if (savedEntries) {
         setEntries(JSON.parse(savedEntries));
+      } else {
+        // Clear entries for new users
+        setEntries([]);
       }
     } else {
       // Clear entries for non-authenticated users
@@ -132,14 +138,15 @@ const JournalPage = () => {
       // If no challenge exists, create a new one
       createNewDailyChallenge();
     }
-  }, []);
+  }, [currentUser]);
   
-  // Save entries to localStorage when updated
+  // Save entries to localStorage when updated - use user-specific key
   useEffect(() => {
-    if (entries.length > 0) {
-      localStorage.setItem('journalEntries', JSON.stringify(entries));
+    if (currentUser && entries.length > 0) {
+      const userEntriesKey = `journalEntries_${currentUser.email || 'default'}`;
+      localStorage.setItem(userEntriesKey, JSON.stringify(entries));
     }
-  }, [entries]);
+  }, [entries, currentUser]);
   
   // Save challenge to localStorage when updated
   useEffect(() => {
