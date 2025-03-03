@@ -1,45 +1,112 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Navigate } from 'react-router-dom';
 import Layout from '../components/layout/Layout';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
 import Input from '../components/common/Input';
+import { useAuth } from '../services/AuthContext';
+import AuthModal from '../components/auth/AuthModal';
 
 const ProfilePage = () => {
   const [activeTab, setActiveTab] = useState('profile');
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const { currentUser, updateUserProfile } = useAuth();
+  const [user, setUser] = useState(null);
   
-  // Sample user data for the prototype
-  const [user, setUser] = useState({
-    name: 'Philosophical Seeker',
-    email: 'seeker@example.com',
-    avatar: 'https://via.placeholder.com/150',
-    joinDate: '2025-01-15T00:00:00.000Z',
-    preferences: {
-      learningStyle: 'interactive',
-      interests: ['ethics', 'metaphysics', 'politics'],
-      notifications: {
-        dailyChallenge: true,
-        journalReminder: true,
-        communityUpdates: false
+  // Set up default achievements for new users
+  const defaultAchievements = [
+    { id: 'ach1', name: 'Journey Begun', description: 'Created your account and started your philosophical journey', icon: '🏆', date: new Date().toISOString() },
+  ];
+  
+  useEffect(() => {
+    if (currentUser) {
+      // If the user doesn't have any achievements yet, add the default one
+      if (!currentUser.achievements || currentUser.achievements.length === 0) {
+        const updatedUser = {
+          ...currentUser,
+          achievements: defaultAchievements
+        };
+        updateUserProfile(updatedUser);
       }
-    },
-    stats: {
-      entriesCount: 12,
-      challengesCompleted: 8,
-      reflectionsCount: 7,
-      sophiaPoints: 256
-    },
-    achievements: [
-      { id: 'ach1', name: 'Socratic Beginner', description: 'Completed 5 daily challenges', icon: '🏆', date: '2025-01-20T00:00:00.000Z' },
-      { id: 'ach2', name: 'Reflective Mind', description: 'Added 5 reflections to your journal entries', icon: '🔍', date: '2025-02-05T00:00:00.000Z' },
-      { id: 'ach3', name: 'Wisdom Seeker', description: 'Accumulated 250 Sophia Points', icon: '🦉', date: '2025-02-22T00:00:00.000Z' },
-    ]
-  });
+      
+      setUser(currentUser);
+    }
+  }, [currentUser, updateUserProfile]);
+  
+  const handleUpdateUser = (field, value) => {
+    const updatedUser = { ...user };
+    
+    if (field.includes('.')) {
+      // Handle nested fields like 'preferences.notifications.dailyChallenge'
+      const fields = field.split('.');
+      let current = updatedUser;
+      
+      for (let i = 0; i < fields.length - 1; i++) {
+        current = current[fields[i]];
+      }
+      
+      current[fields[fields.length - 1]] = value;
+    } else {
+      updatedUser[field] = value;
+    }
+    
+    setUser(updatedUser);
+  };
   
   const handleSavePreferences = () => {
-    // In a real app, we would save this to the backend
+    updateUserProfile(user);
     alert('Preferences saved successfully!');
   };
   
+  // Redirect to home if not logged in
+  if (!currentUser && !authModalOpen) {
+    // Show auth modal first
+    setTimeout(() => setAuthModalOpen(true), 0);
+    
+    // If still not logged in, redirect
+    if (!currentUser) {
+      return (
+        <Layout>
+          <div className="max-w-6xl mx-auto px-4 py-16">
+            <Card>
+              <div className="text-center py-8">
+                <h2 className="text-2xl font-serif font-bold text-aegeanBlue mb-4">
+                  Sign In Required
+                </h2>
+                <p className="mb-6 text-aegeanBlue/70">
+                  Please sign in or create an account to view your profile.
+                </p>
+                <div className="flex justify-center space-x-4">
+                  <Button onClick={() => setAuthModalOpen(true)}>
+                    Sign In
+                  </Button>
+                </div>
+              </div>
+            </Card>
+            
+            {/* Auth Modal */}
+            <AuthModal
+              isOpen={authModalOpen}
+              onClose={() => setAuthModalOpen(false)}
+              initialMode="signin"
+            />
+          </div>
+        </Layout>
+      );
+    }
+  }
+  
+  // Don't render until user data is loaded
+  if (!user) {
+    return (
+      <Layout>
+        <div className="max-w-6xl mx-auto px-4 py-8 flex justify-center items-center min-h-[50vh]">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-aegeanBlue"></div>
+        </div>
+      </Layout>
+    );
+  }
+
   return (
     <Layout>
       <div className="max-w-6xl mx-auto px-4 py-8">
@@ -157,7 +224,7 @@ const ProfilePage = () => {
                   Recent Achievements
                 </h4>
                 <div className="space-y-3">
-                  {user.achievements.slice(0, 3).map((achievement) => (
+                  {user.achievements && user.achievements.slice(0, 3).map((achievement) => (
                     <div 
                       key={achievement.id}
                       className="flex items-center p-3 border border-aegeanBlue/10 rounded-lg"
@@ -198,7 +265,7 @@ const ProfilePage = () => {
             </h3>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {user.achievements.map((achievement) => (
+              {user.achievements && user.achievements.map((achievement) => (
                 <div 
                   key={achievement.id}
                   className="p-4 border border-aegeanBlue/10 rounded-lg text-center"
@@ -247,7 +314,7 @@ const ProfilePage = () => {
                   label="Display Name"
                   id="name"
                   value={user.name}
-                  onChange={(e) => setUser({...user, name: e.target.value})}
+                  onChange={(e) => handleUpdateUser('name', e.target.value)}
                   fullWidth
                 />
                 
@@ -256,12 +323,15 @@ const ProfilePage = () => {
                   id="email"
                   type="email"
                   value={user.email}
-                  onChange={(e) => setUser({...user, email: e.target.value})}
+                  onChange={(e) => handleUpdateUser('email', e.target.value)}
                   fullWidth
                 />
                 
                 <div className="mt-4">
-                  <Button type="button">
+                  <Button 
+                    type="button"
+                    onClick={handleSavePreferences}
+                  >
                     Save Changes
                   </Button>
                 </div>
@@ -285,16 +355,10 @@ const ProfilePage = () => {
                       className="sr-only"
                       id="daily-challenge"
                       checked={user.preferences.notifications.dailyChallenge}
-                      onChange={() => setUser({
-                        ...user, 
-                        preferences: {
-                          ...user.preferences,
-                          notifications: {
-                            ...user.preferences.notifications,
-                            dailyChallenge: !user.preferences.notifications.dailyChallenge
-                          }
-                        }
-                      })}
+                      onChange={() => handleUpdateUser(
+                        'preferences.notifications.dailyChallenge', 
+                        !user.preferences.notifications.dailyChallenge
+                      )}
                     />
                     <label 
                       htmlFor="daily-challenge" 
@@ -322,16 +386,10 @@ const ProfilePage = () => {
                       className="sr-only"
                       id="journal-reminder"
                       checked={user.preferences.notifications.journalReminder}
-                      onChange={() => setUser({
-                        ...user, 
-                        preferences: {
-                          ...user.preferences,
-                          notifications: {
-                            ...user.preferences.notifications,
-                            journalReminder: !user.preferences.notifications.journalReminder
-                          }
-                        }
-                      })}
+                      onChange={() => handleUpdateUser(
+                        'preferences.notifications.journalReminder', 
+                        !user.preferences.notifications.journalReminder
+                      )}
                     />
                     <label 
                       htmlFor="journal-reminder" 
@@ -359,16 +417,10 @@ const ProfilePage = () => {
                       className="sr-only"
                       id="community-updates"
                       checked={user.preferences.notifications.communityUpdates}
-                      onChange={() => setUser({
-                        ...user, 
-                        preferences: {
-                          ...user.preferences,
-                          notifications: {
-                            ...user.preferences.notifications,
-                            communityUpdates: !user.preferences.notifications.communityUpdates
-                          }
-                        }
-                      })}
+                      onChange={() => handleUpdateUser(
+                        'preferences.notifications.communityUpdates', 
+                        !user.preferences.notifications.communityUpdates
+                      )}
                     />
                     <label 
                       htmlFor="community-updates" 
@@ -398,6 +450,13 @@ const ProfilePage = () => {
           </div>
         )}
       </div>
+      
+      {/* Auth Modal */}
+      <AuthModal
+        isOpen={authModalOpen}
+        onClose={() => setAuthModalOpen(false)}
+        initialMode="signin"
+      />
     </Layout>
   );
 };
