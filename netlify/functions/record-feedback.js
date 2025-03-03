@@ -51,7 +51,9 @@ exports.handler = async function(event, context) {
     // Log the feedback to Netlify function logs
     console.log('Feedback received:', JSON.stringify(data, null, 2));
     
-    // Store feedback in Google Sheets
+    // Try to store feedback in Google Sheets, but fallback to email in all cases
+    let googleSheetsSuccess = false;
+    
     if (process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL && 
         process.env.GOOGLE_PRIVATE_KEY) {
       
@@ -87,23 +89,27 @@ exports.handler = async function(event, context) {
           Email: data.email || 'Not provided',
           SessionId: data.sessionId || 'Unknown',
           FeaturesUsed: JSON.stringify(data.features || {}),
-          PageViews: JSON.stringify(data.pageViews || {})
+          PageViews: JSON.stringify(data.pageViews || {}),
+          Source: data.source || 'popup', // Track where feedback came from
+          ContactOk: data.contactOk ? 'Yes' : 'No'
         });
         
         console.log('Feedback saved to Google Sheets successfully!');
+        googleSheetsSuccess = true;
       } catch (sheetError) {
         console.error('Error saving to Google Sheets:', sheetError);
-        // Fall back to email notification
-        await sendEmailNotification(data);
+        googleSheetsSuccess = false;
       }
-    } else {
-      // If Google Sheets credentials not available, send email
-      await sendEmailNotification(data);
     }
     
+    // Always send an email notification as a reliable backup
+    // This ensures we never lose feedback, even if the Google credentials are revoked
+    await sendEmailNotification(data);
+    
+    // For analytics tracking, still count as success
     return {
       statusCode: 200,
-      body: JSON.stringify({ message: 'Feedback recorded successfully' })
+      body: JSON.stringify({ message: 'Feedback recorded successfully', method: googleSheetsSuccess ? 'sheets+email' : 'email' })
     };
   } catch (error) {
     console.error('Error recording feedback:', error);
@@ -171,17 +177,25 @@ async function sendEmailNotification(feedbackData) {
     const sgMail = require('@sendgrid/mail');
     sgMail.setApiKey(process.env.SENDGRID_API_KEY);
     
+    // Determine the source of the feedback
+    const source = feedbackData.source || 'popup';
+    const contactOk = feedbackData.contactOk ? 'Yes' : 'No';
+    const likedFeature = feedbackData.likedFeature || 'Not specified';
+    
     const msg = {
       to: process.env.NOTIFICATION_EMAIL,
       from: 'feedback@agr-platform.com', // Use your verified sender
-      subject: `AGR Platform Feedback - Interest Level: ${feedbackData.interestLevel}/5`,
+      subject: `AGR Platform Feedback - ${source === 'footer' ? 'Footer Form' : `Interest Level: ${feedbackData.interestLevel}/5`}`,
       text: `
-New feedback received:
+New feedback received from ${source}:
 
-Interest Level: ${feedbackData.interestLevel}/5
+${source !== 'footer' ? `Interest Level: ${feedbackData.interestLevel}/5` : ''}
 Feedback: ${feedbackData.feedback}
 Email: ${feedbackData.email || 'Not provided'}
+${source === 'footer' ? `Liked Feature: ${likedFeature}` : ''}
+Contact OK: ${contactOk}
 Timestamp: ${feedbackData.timestamp}
+SessionId: ${feedbackData.sessionId || 'Unknown'}
 
 Features Used: 
 ${JSON.stringify(feedbackData.features || {}, null, 2)}
@@ -190,11 +204,14 @@ Page Views:
 ${JSON.stringify(feedbackData.pageViews || {}, null, 2)}
       `,
       html: `
-<h2>New AGR Platform Feedback</h2>
-<p><strong>Interest Level:</strong> ${feedbackData.interestLevel}/5</p>
+<h2>New AGR Platform Feedback (${source})</h2>
+${source !== 'footer' ? `<p><strong>Interest Level:</strong> ${feedbackData.interestLevel}/5</p>` : ''}
 <p><strong>Feedback:</strong> ${feedbackData.feedback}</p>
 <p><strong>Email:</strong> ${feedbackData.email || 'Not provided'}</p>
+${source === 'footer' ? `<p><strong>Liked Feature:</strong> ${likedFeature}</p>` : ''}
+<p><strong>Contact OK:</strong> ${contactOk}</p>
 <p><strong>Timestamp:</strong> ${feedbackData.timestamp}</p>
+<p><strong>Session ID:</strong> ${feedbackData.sessionId || 'Unknown'}</p>
 
 <h3>Features Used:</h3>
 <pre>${JSON.stringify(feedbackData.features || {}, null, 2)}</pre>

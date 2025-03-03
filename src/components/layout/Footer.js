@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import AboutModal from '../common/AboutModal';
+import { recordFeedback, getAnalyticsData } from '../../services/analyticsService';
 
 const Footer = () => {
   const location = useLocation();
@@ -8,6 +9,13 @@ const Footer = () => {
   const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
   const [aboutModalOpen, setAboutModalOpen] = useState(false);
   const [formSubmitted, setFormSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Form fields
+  const [feedbackText, setFeedbackText] = useState('');
+  const [email, setEmail] = useState('');
+  const [likedFeature, setLikedFeature] = useState('');
+  const [contactOk, setContactOk] = useState(false);
 
   useEffect(() => {
     // Check if we're on the onboarding page
@@ -28,6 +36,11 @@ const Footer = () => {
     // Reset the form submission status after some time
     setTimeout(() => {
       setFormSubmitted(false);
+      // Reset form fields
+      setFeedbackText('');
+      setEmail('');
+      setLikedFeature('');
+      setContactOk(false);
     }, 1000);
   };
   
@@ -39,28 +52,48 @@ const Footer = () => {
     setAboutModalOpen(false);
   };
   
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsSubmitting(true);
     
-    // Get form data
-    const form = e.target;
-    const data = new FormData(form);
-    
-    // Submit the form to Netlify
-    fetch('/', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams(data).toString(),
-    })
-      .then(() => {
-        console.log('Form successfully submitted');
+    try {
+      // Get the features used from analytics data
+      const analyticsData = getAnalyticsData();
+      const features = analyticsData.features || {};
+      const pageViews = analyticsData.pageViews || {};
+      
+      // Use the same feedback system as FeedbackCard
+      const success = await recordFeedback({
+        interestLevel: 5, // Default to high interest for footer feedback
+        feedback: feedbackText,
+        email: email || null,
+        features: {
+          ...features,
+          // Add the liked feature if provided
+          ...(likedFeature ? { [likedFeature]: 1 } : {})
+        },
+        pageViews,
+        source: 'footer', // Mark the source as footer
+        contactOk: contactOk
+      });
+      
+      if (success) {
+        console.log('Feedback successfully submitted');
         setFormSubmitted(true);
-        // Close the modal after a slight delay
+        
+        // Close the modal after a delay
         setTimeout(() => {
           closeFeedbackModal();
         }, 2000);
-      })
-      .catch((error) => console.log('Form submission error:', error));
+      } else {
+        throw new Error('Failed to submit feedback');
+      }
+    } catch (error) {
+      console.error('Error submitting feedback:', error);
+      alert('There was a problem submitting your feedback. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -120,9 +153,7 @@ const Footer = () => {
                   We value your thoughts and suggestions to improve The Oikosystem. Please share your experience with us.
                 </p>
                 
-                <form name="feedback" method="POST" data-netlify="true" onSubmit={handleSubmit} className="space-y-4">
-                  <input type="hidden" name="form-name" value="feedback" />
-                  
+                <form onSubmit={handleSubmit} className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-aegeanBlue/70 mb-1" htmlFor="email">
                       Email
@@ -130,8 +161,8 @@ const Footer = () => {
                     <input 
                       id="email"
                       type="email" 
-                      name="email" 
-                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
                       className="w-full px-4 py-2 border border-aegeanBlue/20 rounded-md focus:ring-2 focus:ring-oliveGold/50 focus:border-oliveGold outline-none"
                       placeholder="you@example.com"
                     />
@@ -144,7 +175,8 @@ const Footer = () => {
                     <input 
                       id="liked-feature"
                       type="text" 
-                      name="liked-feature"
+                      value={likedFeature}
+                      onChange={(e) => setLikedFeature(e.target.value)}
                       className="w-full px-4 py-2 border border-aegeanBlue/20 rounded-md focus:ring-2 focus:ring-oliveGold/50 focus:border-oliveGold outline-none"
                       placeholder="Study, Journal, Agora..."
                     />
@@ -156,7 +188,8 @@ const Footer = () => {
                     </label>
                     <textarea 
                       id="feedback-text"
-                      name="feedback-text"
+                      value={feedbackText}
+                      onChange={(e) => setFeedbackText(e.target.value)}
                       required
                       rows="4"
                       className="w-full px-4 py-2 border border-aegeanBlue/20 rounded-md focus:ring-2 focus:ring-oliveGold/50 focus:border-oliveGold outline-none resize-none"
@@ -167,8 +200,9 @@ const Footer = () => {
                   <div className="flex items-start">
                     <input
                       id="contact-ok"
-                      name="contact-ok"
                       type="checkbox"
+                      checked={contactOk}
+                      onChange={(e) => setContactOk(e.target.checked)}
                       className="h-4 w-4 mt-1 text-oliveGold border-aegeanBlue/20 rounded focus:ring-oliveGold/50"
                     />
                     <label htmlFor="contact-ok" className="ml-3 text-sm text-aegeanBlue/70">
@@ -186,9 +220,10 @@ const Footer = () => {
                     </button>
                     <button 
                       type="submit" 
-                      className="px-4 py-2 bg-oliveGold text-white rounded-md hover:bg-oliveGold/90 transition-colors"
+                      disabled={isSubmitting}
+                      className="px-4 py-2 bg-oliveGold text-white rounded-md hover:bg-oliveGold/90 transition-colors disabled:opacity-50"
                     >
-                      Submit
+                      {isSubmitting ? 'Submitting...' : 'Submit'}
                     </button>
                   </div>
                 </form>

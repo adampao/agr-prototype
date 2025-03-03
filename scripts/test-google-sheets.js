@@ -78,6 +78,8 @@ async function testGoogleSheetsConnection() {
   } catch (error) {
     console.error('\n❌ GOOGLE SHEETS INTEGRATION ERROR:');
     console.error(error.message);
+    console.error('\nDetailed error:');
+    console.error(JSON.stringify(error, null, 2));
     
     if (error.message.includes('invalid_grant') || error.message.includes('Invalid JWT')) {
       console.error('\nPossible issues:');
@@ -93,6 +95,15 @@ async function testGoogleSheetsConnection() {
       console.error('3. The service account does not have access to the spreadsheet');
       console.error('\nMake sure you have shared the Google Sheet with:');
       console.error(process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL);
+    }
+    
+    // Check for credential revocation
+    if (error.code === 403 || error.message.includes('forbidden') || error.message.includes('Permission denied')) {
+      console.error('\nPossible credential issues:');
+      console.error('1. The service account may have been disabled due to exposed credentials');
+      console.error('2. The API key may have been revoked or restricted');
+      console.error('3. The service account may not have proper permissions');
+      console.error('\nYou may need to create a new service account in the Google Cloud Console.');
     }
     
     process.exit(1);
