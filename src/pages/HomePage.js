@@ -111,10 +111,11 @@ const HomePage = () => {
                   </svg>
                 </div>
                 <h3 className="text-xl font-serif font-semibold text-aegeanBlue mb-2">
-                  AI-Powered Philosophical Guidance
+                  The Journal <br/>AI-Powered Philosophical Guidance 
+                  
                 </h3>
                 <p className="text-aegeanBlue/80">
-                  Engage in meaningful conversations with AI versions of ancient Greek philosophers, tailored to your questions and challenges.
+                Your personal space for reflection and growth, enhanced by AI-guided insights and daily challenges.
                 </p>
               </div>
             </Card>
@@ -127,10 +128,10 @@ const HomePage = () => {
                   </svg>
                 </div>
                 <h3 className="text-xl font-serif font-semibold text-aegeanBlue mb-2">
-                  Personal Growth Journey
+                  The Study <br/>Personal Growth Journey
                 </h3>
                 <p className="text-aegeanBlue/80">
-                  Track your development through daily challenges, reflective journaling, and customized philosophical exercises.
+                Dive deep into ancient Greek knowledge through interactive learning experiences and personalized pathways.
                 </p>
               </div>
             </Card>
@@ -143,10 +144,10 @@ const HomePage = () => {
                   </svg>
                 </div>
                 <h3 className="text-xl font-serif font-semibold text-aegeanBlue mb-2">
-                  Philosophical Community
+                  The Agora  <br/>Philosophical Community
                 </h3>
                 <p className="text-aegeanBlue/80">
-                  Join symposiums and debates to engage with like-minded seekers of wisdom in our modern digital Agora.
+                  Join symposiums and debates and connect with a community of fellow knowledge seekers.
                 </p>
               </div>
             </Card>
