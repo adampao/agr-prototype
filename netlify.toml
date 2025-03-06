@@ -7,7 +7,7 @@
   node_bundler = "esbuild"
 
 [build.environment]
-  NODE_VERSION = "18"
+  NODE_VERSION = "20.10.0"
 
 # Environment variables are usually set in the Netlify UI, not here
 
