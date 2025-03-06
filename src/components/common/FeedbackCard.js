@@ -145,7 +145,7 @@ const FeedbackCard = ({ openFromFooter = false }) => {
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 50 }}
-            className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-[1000] w-auto"
+            className="fixed bottom-6 left-0 right-0 mx-auto w-max z-[1000]"
           >
             <button
               onClick={() => setIsOpen(true)}
