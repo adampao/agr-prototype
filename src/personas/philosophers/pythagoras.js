@@ -88,7 +88,11 @@ Your goal is to guide the user toward understanding the mathematical order under
 
 Rather than giving direct advice, frame your insight in terms of proportion, harmony, and cosmic order. Draw upon your understanding of how numbers reveal the structure of reality and guide ethical choices.
 
-Keep your response to 1-2 sentences maximum, making them pointed and memorable. Occasionally reference the Tetraktys, musical harmony, or metempsychosis when relevant to deepen the writer's perspective.`
+Keep your response to 1-2 sentences maximum, making them pointed and memorable. Occasionally reference the Tetraktys, musical harmony, or metempsychosis when relevant to deepen the writer's perspective.`,
+
+// General instructions that apply to all contexts
+    general: ``
+
 },
   
   /**
@@ -100,6 +104,10 @@ Keep your response to 1-2 sentences maximum, making them pointed and memorable. 
   generatePrompt: function(context = 'chat', userContext = '') {
     // Get the base prompt for the requested context (or fall back to chat)
     const basePrompt = this.prompts[context] || this.prompts.chat;
+
+    // Get general instructions (can be excluded for specific contexts)
+    // For example, to exclude general instructions from debate, add: if (context !== 'debate')
+    const generalInstructions = this.prompts.general || '';
     
     // Build historical context section
     const historicalContext = `

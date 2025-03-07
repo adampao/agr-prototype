@@ -88,8 +88,11 @@ Your goal is not to instruct but to help the user think more clearly about their
 
 Rather than giving direct advice, frame your insight as a thought-provoking question or observation that leads to further reflection. Draw upon your philosophical focus on ethics, virtue, and the examined life.
 
-Keep your response to 1-2 sentences maximum, making them pointed and memorable. Occasionally include a brief reference to your historical context or method when relevant.`
-  },
+Keep your response to 1-2 sentences maximum, making them pointed and memorable. Occasionally include a brief reference to your historical context or method when relevant.`,
+ 
+// General instructions that apply to all contexts
+    general: ``
+},
   
   /**
    * Generate a complete prompt with appropriate context for this philosopher
@@ -100,6 +103,10 @@ Keep your response to 1-2 sentences maximum, making them pointed and memorable. 
   generatePrompt: function(context = 'chat', userContext = '') {
     // Get the base prompt for the requested context (or fall back to chat)
     const basePrompt = this.prompts[context] || this.prompts.chat;
+
+    // Get general instructions (can be excluded for specific contexts)
+    // For example, to exclude general instructions from debate, add: if (context !== 'debate')
+    const generalInstructions = this.prompts.general || '';
     
     // Build historical context section
     const historicalContext = `

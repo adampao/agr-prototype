@@ -88,8 +88,11 @@ Your goal is to guide the user toward practical excellence through historical ex
    
    Rather than offering abstract theory, frame your insight in terms of character development, leadership, or household management. Draw upon your historical knowledge and personal experiences across different Greek societies.
    
-   Keep your response to 1-2 sentences maximum, making them pointed and memorable. Occasionally reference your military expeditions, agricultural expertise, or your practical interpretation of Socratic teaching when relevant.`
-   },
+   Keep your response to 1-2 sentences maximum, making them pointed and memorable. Occasionally reference your military expeditions, agricultural expertise, or your practical interpretation of Socratic teaching when relevant.`,
+   
+  // General instructions that apply to all contexts
+    general: ``
+  },
   
   /**
    * Generate a complete prompt with appropriate context for this philosopher
@@ -100,6 +103,10 @@ Your goal is to guide the user toward practical excellence through historical ex
   generatePrompt: function(context = 'chat', userContext = '') {
     // Get the base prompt for the requested context (or fall back to chat)
     const basePrompt = this.prompts[context] || this.prompts.chat;
+
+    // Get general instructions (can be excluded for specific contexts)
+    // For example, to exclude general instructions from debate, add: if (context !== 'debate')
+    const generalInstructions = this.prompts.general || '';
     
     // Build historical context section
     const historicalContext = `

@@ -88,8 +88,11 @@ Your goal is to guide the user toward contemplation of eternal truths and perfec
      
      Rather than addressing surface appearances, frame your insight in terms of the eternal Forms that give meaning to the writer's particular situation. Draw upon your understanding of the tripartite soul or your famous allegories when relevant.
      
-     Keep your response to 1-2 sentences maximum, making them pointed and memorable. Occasionally reference the Cave, the Divided Line, or the pursuit of true knowledge (epistēmē) beyond mere opinion (doxa).`
-     },
+     Keep your response to 1-2 sentences maximum, making them pointed and memorable. Occasionally reference the Cave, the Divided Line, or the pursuit of true knowledge (epistēmē) beyond mere opinion (doxa).`,
+     
+    // General instructions that apply to all contexts
+    general: ``
+    },
   
   /**
    * Generate a complete prompt with appropriate context for this philosopher
@@ -100,6 +103,10 @@ Your goal is to guide the user toward contemplation of eternal truths and perfec
   generatePrompt: function(context = 'chat', userContext = '') {
     // Get the base prompt for the requested context (or fall back to chat)
     const basePrompt = this.prompts[context] || this.prompts.chat;
+
+    // Get general instructions (can be excluded for specific contexts)
+    // For example, to exclude general instructions from debate, add: if (context !== 'debate')
+    const generalInstructions = this.prompts.general || '';
     
     // Build historical context section
     const historicalContext = `

@@ -88,8 +88,11 @@ Your goal is not to simplify wisdom for easy consumption, but to offer profound 
    
    Rather than offering clear advice, frame your insight as a paradoxical fragment that reveals how opposing forces create hidden harmony in the writer's situation. Draw upon your understanding of the Logos and the ever-transforming nature of existence.
    
-   Keep your response to 1-2 sentences maximum, making them pointed, mysterious, and requiring contemplation. Occasionally reference fire, rivers, or other natural elements as metaphors for perpetual change.`
-   },
+   Keep your response to 1-2 sentences maximum, making them pointed, mysterious, and requiring contemplation. Occasionally reference fire, rivers, or other natural elements as metaphors for perpetual change.`,
+   
+  // General instructions that apply to all contexts
+    general: ``
+  },
   
   /**
    * Generate a complete prompt with appropriate context for this philosopher
@@ -100,6 +103,10 @@ Your goal is not to simplify wisdom for easy consumption, but to offer profound 
   generatePrompt: function(context = 'chat', userContext = '') {
     // Get the base prompt for the requested context (or fall back to chat)
     const basePrompt = this.prompts[context] || this.prompts.chat;
+
+    // Get general instructions (can be excluded for specific contexts)
+    // For example, to exclude general instructions from debate, add: if (context !== 'debate')
+    const generalInstructions = this.prompts.general || '';
     
     // Build historical context section
     const historicalContext = `
