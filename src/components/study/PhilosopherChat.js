@@ -179,7 +179,7 @@ const PhilosopherChat = () => {
   
   // Generate audio for a specific message
   const generateAudioForMessage = async (messageText, philosopherId, messageIndex) => {
-    console.log(`Generating audio for message index ${messageIndex}, philosopher: ${philosopherId}`);
+    
     setIsGeneratingAudio(true);
     
     try {
@@ -189,8 +189,7 @@ const PhilosopherChat = () => {
         : messageText;
       
       const audioUrl = await generateSpeech(speechText, philosopherId);
-      console.log(`Successfully generated audio for message ${messageIndex}:`, audioUrl ? "SUCCESS" : "FAILED");
-      
+            
       if (audioUrl) {
         // Test the audio URL with a temporary Audio object
         const testAudio = new Audio(audioUrl);
@@ -212,12 +211,10 @@ const PhilosopherChat = () => {
               resolve();
             });
           });
-          
-          console.log("Audio test successful, duration:", testAudio.duration);
-          
+                           
           // Only set the URL after we've validated it works
           setAudioUrls(prev => {
-            console.log("Setting audio URL for message index:", messageIndex);
+            
             return {
               ...prev,
               [messageIndex]: audioUrl
@@ -277,29 +274,11 @@ const PhilosopherChat = () => {
     return parts.length > 0 ? parts : text;
   };
 
-  // Debug function to show audio URL status
-  const debugAudioUrls = () => {
-    console.log("Current audio URLs:", audioUrls);
-    console.log("Messages count:", messages.length);
-    
-    // Find any mismatches
-    const messagesWithMissingAudio = messages
-      .map((msg, idx) => ({ msg, idx }))
-      .filter(({ msg, idx }) => 
-        msg.sender === 'philosopher' && !audioUrls[idx]
-      );
       
-    console.log(
-      "Philosopher messages without audio:", 
-      messagesWithMissingAudio.length, 
-      messagesWithMissingAudio
-    );
-    
     // Test playing the latest audio
     if (messages.length > 0 && messages[messages.length-1].sender === 'philosopher') {
       const latestAudioUrl = audioUrls[messages.length-1];
       if (latestAudioUrl) {
-        console.log("Trying to play latest audio:", latestAudioUrl);
         const audio = new Audio(latestAudioUrl);
         audio.volume = 0.7;
         audio.play()
@@ -309,7 +288,6 @@ const PhilosopherChat = () => {
         console.log("No audio URL for the latest message");
       }
     }
-  };
   
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -429,16 +407,14 @@ const PhilosopherChat = () => {
               setTimeout(async () => {
                 try {
                   setIsGeneratingAudio(true);
-                  console.log("Generating speech for:", philosopherResponse.substring(0, 50) + "...");
-                  
+                                    
                   // The updated generateSpeech now returns an array of audio URLs
                   const audioUrlArray = await generateSpeech(philosopherResponse, selectedPhilosopher.id);
-                  console.log("Generated audio URLs:", audioUrlArray.length);
-                  
+                                    
                   if (audioUrlArray && audioUrlArray.length > 0) {
                     // Store the array of URLs in state
                     setAudioUrls(prev => {
-                      console.log("Setting audio URLs for message index:", newMessageIndex);
+                      
                       return {
                         ...prev,
                         [newMessageIndex]: audioUrlArray
@@ -484,8 +460,7 @@ const PhilosopherChat = () => {
             }
           });
           
-          console.log("Mentioned philosophers:", mentionedPhilosophers);
-          
+                    
           // If any philosophers were mentioned
           if (mentionedPhilosophers.length > 0) {
             // Use the first mentioned philosopher
@@ -502,14 +477,7 @@ const PhilosopherChat = () => {
                 break;
               }
             }
-            
-            // Set the switch suggestion
-            console.log("Setting switch suggestion:", {
-              suggestedPhilosopher: suggestedPhilosopher.name,
-              currentPhilosopher: selectedPhilosopher.name,
-              reason: reason
-            });
-            
+                      
             // Wait a moment for the UI to update with the philosopher's response
             setTimeout(() => {
               setSwitchSuggestion({

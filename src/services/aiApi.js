@@ -135,13 +135,10 @@ export const sendMessageToPhilosopher = async (
     // Determine which API to use based on feature and philosopher
     const apiProvider = selectApiProvider(feature, philosopherId);
     
-    console.log(`Using API provider: ${apiProvider} for feature: ${feature} with philosopher: ${philosopherId}`);
-    
+        
     // Get context-specific prompt from our persona system
     const persona = getPersona(philosopherId);
     const contextInfo = persona ? `Using ${feature} context from persona file` : 'Using legacy prompt system';
-    console.log(`${contextInfo} for ${philosopherId}`);
-    
     const endpoint = apiProvider === API_PROVIDERS.OPENAI 
       ? '/.netlify/functions/openai-chat'
       : '/.netlify/functions/claude-chat';

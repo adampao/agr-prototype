@@ -8,8 +8,7 @@ try {
   const personasModule = require('../../src/personas');
   personas = personasModule.default;
   getPrompt = personasModule.getPrompt;
-  console.log("Successfully imported persona system");
-} catch (error) {
+  } catch (error) {
   console.log("Could not import persona system:", error.message);
 }
 
@@ -43,7 +42,6 @@ exports.handler = async function(event, context) {
     if (getPrompt) {
       try {
         systemPrompt = getPrompt(philosopherId, context, userContext);
-        console.log(`Using new persona system for ${philosopherId} in ${context} context`);
       } catch (error) {
         console.log(`Error getting prompt from persona system: ${error.message}`);
         systemPrompt = null;
@@ -52,7 +50,7 @@ exports.handler = async function(event, context) {
     
     // Fall back to the legacy system if needed
     if (!systemPrompt) {
-      console.log(`Falling back to legacy prompt system for ${philosopherId}`);
+      
       
       // Get the time period and knowledge boundaries for the selected philosopher
       const timePeriod = PHILOSOPHER_DATA.timePeriods[philosopherId] || 'ancient Greece';
@@ -75,12 +73,7 @@ exports.handler = async function(event, context) {
       // Claude-specific prompt assembly - add philosophy-specific enhancements if needed
       systemPrompt = basePrompt + historicalContext;
     }
-    
-    // Debug the final prompt
-    console.log(`Philosopher ID: ${philosopherId}`);
-    console.log(`Context: ${context}`);
-    console.log(`Final System Prompt (first 100 chars): ${systemPrompt.substring(0, 100)}...`);
-    
+          
     // Format the conversation history for Claude API
     // The system prompt needs to be a top-level parameter, not a message
     const messages = [
@@ -113,9 +106,7 @@ exports.handler = async function(event, context) {
     
     // Try each model until one works
     for (const currentModel of fallbackModels) {
-      try {
-        console.log(`Attempting to use model: ${currentModel}`);
-        
+      try {               
         response = await axios.post('https://api.anthropic.com/v1/messages', {
           model: currentModel,
           max_tokens: 1000,
@@ -130,8 +121,7 @@ exports.handler = async function(event, context) {
           timeout: 30000 // 30 second timeout
         });
         
-        // If we get here, the request succeeded
-        console.log(`Successfully used model: ${currentModel}`);
+        // If we get here, the request succeeded        
         break;
       } catch (err) {
         console.log(`Failed with model ${currentModel}: ${err.message}`);

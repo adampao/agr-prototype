@@ -9,8 +9,7 @@ try {
   const personasModule = require('../../src/personas');
   personas = personasModule.default;
   getPrompt = personasModule.getPrompt;
-  console.log("Successfully imported persona system");
-} catch (error) {
+  } catch (error) {
   console.log("Could not import persona system:", error.message);
 }
 
@@ -44,7 +43,7 @@ exports.handler = async function(event, context) {
     if (getPrompt) {
       try {
         systemPrompt = getPrompt(philosopherId, context, userContext);
-        console.log(`Using new persona system for ${philosopherId} in ${context} context`);
+        
       } catch (error) {
         console.log(`Error getting prompt from persona system: ${error.message}`);
         systemPrompt = null;
@@ -53,8 +52,7 @@ exports.handler = async function(event, context) {
     
     // Fall back to the legacy system if needed
     if (!systemPrompt) {
-      console.log(`Falling back to legacy prompt system for ${philosopherId}`);
-      
+            
       // Get the time period and knowledge boundaries for the selected philosopher
       const timePeriod = PHILOSOPHER_DATA.timePeriods[philosopherId] || 'ancient Greece';
       const boundaries = PHILOSOPHER_DATA.knowledgeBoundaries[philosopherId] || { laterPhilosophers: [], keyEvents: [] };
@@ -77,11 +75,7 @@ exports.handler = async function(event, context) {
       systemPrompt = basePrompt + historicalContext;
     }
     
-    // Debug the final prompt
-    console.log(`Philosopher ID: ${philosopherId}`);
-    console.log(`Context: ${context}`);
-    console.log(`Final System Prompt (first 100 chars): ${systemPrompt.substring(0, 100)}...`);
-    
+       
      // Check if OpenAI API key is set
      if (!process.env.OPENAI_API_KEY) {
        console.error('OpenAI API key is missing');
@@ -115,9 +109,7 @@ exports.handler = async function(event, context) {
       hasApiKey: !!process.env.OPENAI_API_KEY,
       messageCount: messages.length
     });
-    
-    console.log(`Request for ${philosopherId}: POST /.netlify/functions/openai-chat`);
-    
+           
     // Make request to OpenAI API
     const response = await openai.chat.completions.create({
       model: "o3-mini-2025-01-31", // Use your preferred model
