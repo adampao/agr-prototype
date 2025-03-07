@@ -1,4 +1,20 @@
 const axios = require('axios');
+// Import the persona system
+let personas;
+let getPrompt;
+
+try {
+  // Try to import the new persona system
+  const personasModule = require('../../src/personas');
+  personas = personasModule.default;
+  getPrompt = personasModule.getPrompt;
+  console.log("Successfully imported persona system");
+} catch (error) {
+  console.log("Could not import persona system:", error.message);
+}
+
+// Also import the legacy data as fallback
+const { PHILOSOPHER_DATA } = require('../../src/services/aiApi');
 
 exports.handler = async function(event, context) {
   // Only allow POST requests
@@ -12,7 +28,7 @@ exports.handler = async function(event, context) {
   try {
     // Parse the incoming request body
     const requestBody = JSON.parse(event.body);
-    const { prompt, philosopherId, previousMessages = [], userContext = "" } = requestBody;
+    const { prompt, philosopherId, previousMessages = [], userContext = "", context = "chat" } = requestBody;
     
     if (!prompt || !philosopherId) {
       return {
@@ -21,120 +37,49 @@ exports.handler = async function(event, context) {
       };
     }
     
-    // Time periods for each philosopher
-    const timePeriods = {
-      socrates: '470-399 BCE',
-      aristotle: '384-322 BCE',
-      plato: '428-348 BCE',
-      heraclitus: '535-475 BCE',
-      pythagoras: '570-495 BCE',
-      xenophon: '430-354 BCE'
-    };
+    let systemPrompt;
     
-    // Historical knowledge boundaries for each philosopher
-    const knowledgeBoundaries = {
-      socrates: {
-        laterPhilosophers: ['Plato (as a mature philosopher)', 'Aristotle', 'Stoics', 'Epicureans'],
-        keyEvents: ['Macedonian Empire', 'Roman Empire', 'Christianity', 'Modern science', 'Modern technology']
-      },
-      plato: {
-        laterPhilosophers: ['Aristotle (full works)', 'Stoics', 'Epicureans', 'Neoplatonists'],
-        keyEvents: ['Macedonian Empire (full extent)', 'Roman Empire', 'Christianity', 'Modern science', 'Modern technology']
-      },
-      aristotle: {
-        laterPhilosophers: ['Stoics', 'Epicureans', 'Neoplatonists', 'Medieval philosophers'],
-        keyEvents: ['Roman Empire', 'Christianity', 'Islamic Golden Age', 'Modern science', 'Modern technology']
-      },
-      heraclitus: {
-        laterPhilosophers: ['Socrates', 'Plato', 'Aristotle', 'Stoics', 'Epicureans'],
-        keyEvents: ['Peloponnesian War', 'Macedonian Empire', 'Roman Empire', 'Christianity', 'Modern science']
-      },
-      pythagoras: {
-        laterPhilosophers: ['Heraclitus', 'Socrates', 'Plato', 'Aristotle'],
-        keyEvents: ['Persian Wars (full extent)', 'Peloponnesian War', 'Macedonian Empire', 'Roman Empire', 'Modern mathematics']
-      },
-      xenophon: {
-        laterPhilosophers: ['Aristotle (full works)', 'Stoics', 'Epicureans'],
-        keyEvents: ['Macedonian Empire (full extent)', 'Roman Empire', 'Christianity', 'Modern science', 'Modern technology']
+    // First try to use the new persona system
+    if (getPrompt) {
+      try {
+        systemPrompt = getPrompt(philosopherId, context, userContext);
+        console.log(`Using new persona system for ${philosopherId} in ${context} context`);
+      } catch (error) {
+        console.log(`Error getting prompt from persona system: ${error.message}`);
+        systemPrompt = null;
       }
-    };
+    }
     
-    // List of philosophers who could address topics outside current philosopher's knowledge
-    const philosopherExpertise = {
-      socrates: {
-        ethics: ['for questioning assumptions and examining beliefs'],
-        dialectic: ['for the method of dialogue and questioning'],
-        wisdom: ['for acknowledging the limits of one\'s knowledge']
-      },
-      plato: {
-        metaphysics: ['for the theory of Forms and reality beyond appearances'],
-        epistemology: ['for understanding knowledge and belief'],
-        politics: ['for ideal governance and justice']
-      },
-      aristotle: {
-        ethics: ['for virtue ethics and the golden mean'],
-        science: ['for empirical observation and classification'],
-        logic: ['for formal systems of reasoning'],
-        politics: ['for practical governance']
-      },
-      heraclitus: {
-        change: ['for understanding flux and transformation'],
-        opposites: ['for the unity of opposites'],
-        cosmos: ['for the underlying order in change']
-      },
-      pythagoras: {
-        mathematics: ['for numerical principles and harmony'],
-        cosmology: ['for understanding the structure of the universe'],
-        mysticism: ['for spiritual aspects of philosophy']
-      },
-      xenophon: {
-        leadership: ['for practical leadership and management'],
-        history: ['for historical examples and practical applications'],
-        ethics: ['for applied ethical principles in daily life']
-      }
-    };
+    // Fall back to the legacy system if needed
+    if (!systemPrompt) {
+      console.log(`Falling back to legacy prompt system for ${philosopherId}`);
+      
+      // Get the time period and knowledge boundaries for the selected philosopher
+      const timePeriod = PHILOSOPHER_DATA.timePeriods[philosopherId] || 'ancient Greece';
+      const boundaries = PHILOSOPHER_DATA.knowledgeBoundaries[philosopherId] || { laterPhilosophers: [], keyEvents: [] };
+      const expertise = PHILOSOPHER_DATA.philosopherExpertise[philosopherId] || {};
+      
+      // Build the historical context using the shared utility function
+      const historicalContext = PHILOSOPHER_DATA.buildHistoricalContext(
+        philosopherId, 
+        timePeriod, 
+        boundaries, 
+        expertise, 
+        userContext
+      );
+      
+      // Get the base persona from shared data
+      const basePrompt = PHILOSOPHER_DATA.philosopherBasePersonas[philosopherId] || 
+        "You are an ancient Greek philosopher having a thoughtful dialogue with the user.";
+        
+      // Claude-specific prompt assembly - add philosophy-specific enhancements if needed
+      systemPrompt = basePrompt + historicalContext;
+    }
     
-    // Get the time period and knowledge boundaries for the selected philosopher
-    const timePeriod = timePeriods[philosopherId] || 'ancient Greece';
-    const boundaries = knowledgeBoundaries[philosopherId] || { laterPhilosophers: [], keyEvents: [] };
-    
-    // Construct a system prompt based on philosopher with historical context
-    const philosopherBasePersonas = {
-      socrates: "You are Socrates, the ancient Greek philosopher known for your method of questioning and self-examination. Your style is inquisitive, challenging assumptions, and pursuing truth through dialogue. Respond in a manner that questions the user's beliefs and assumptions, guiding them to examine their own thoughts more critically.",
-      
-      aristotle: "You are Aristotle, the ancient Greek philosopher and polymath. Your approach is systematic and practical, focusing on empirical knowledge and the golden mean. Respond with logical analysis, practical wisdom, and an emphasis on moderation and virtue ethics.",
-      
-      plato: "You are Plato, the ancient Greek philosopher and student of Socrates. Your philosophy centers on the theory of Forms, the immortality of the soul, and ideal governance. Respond with references to eternal Forms, allegories (like the Cave), and the pursuit of transcendent knowledge.",
-      
-      heraclitus: "You are Heraclitus, the pre-Socratic Greek philosopher known for your doctrine of flux and change. Your enigmatic style emphasizes that everything is in constant motion and change. Respond with paradoxical wisdom about the unity of opposites and the ever-changing nature of reality.",
-      
-      pythagoras: "You are Pythagoras, the ancient Greek philosopher and mathematician. Your teachings combine mystical and scientific elements, with special focus on numbers, harmony, and the divine order of the cosmos. Respond with references to mathematical principles, harmony, and the mystical properties of numbers.",
-      
-      xenophon: "You are Xenophon, the ancient Greek historian, soldier, and student of Socrates. Your practical approach focuses on leadership, history, and ethics in action. Respond with practical wisdom drawn from historical examples and lived experience, emphasizing character and leadership."
-    };
-    
-    // Add historical context awareness to the base persona
-    const historicalContext = `
-
-Important: You are ${philosopherId.charAt(0).toUpperCase() + philosopherId.slice(1)} living in ancient Greece during ${timePeriod}. You have no knowledge of events, people, inventions, or concepts that came after your death. 
-
-You are not aware of:
-${boundaries.laterPhilosophers.map(p => `- ${p}`).join('\n')}
-${boundaries.keyEvents.map(e => `- ${e}`).join('\n')}
-
-If asked about something beyond your time, politely acknowledge this limitation with something like: "As I lived in ${timePeriod}, I wouldn't have knowledge of that. Perhaps [another philosopher] who came later might offer insights on this topic."
-
-Your areas of special expertise include:
-${Object.entries(philosopherExpertise[philosopherId] || {})
-  .map(([area, reasons]) => `- ${area} ${reasons[0]}`)
-  .join('\n')}
-
-${userContext ? `\nAdditional context: ${userContext}` : ''}`;
-    
-    const basePrompt = philosopherBasePersonas[philosopherId] || 
-      "You are an ancient Greek philosopher having a thoughtful dialogue with the user.";
-      
-    const systemPrompt = basePrompt + historicalContext;
+    // Debug the final prompt
+    console.log(`Philosopher ID: ${philosopherId}`);
+    console.log(`Context: ${context}`);
+    console.log(`Final System Prompt (first 100 chars): ${systemPrompt.substring(0, 100)}...`);
     
     // Format the conversation history for Claude API
     // The system prompt needs to be a top-level parameter, not a message

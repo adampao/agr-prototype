@@ -42,6 +42,24 @@ You don't have to ever use `eject`. The curated feature set is suitable for smal
 
 ⚠️ Important: Use netlify dev or npm run dev for local development to ensure both the React app and serverless functions are available. Do not use npm start as it won't provide access to the Netlify functions.
 
+## API Key Setup
+
+This application uses both Claude and OpenAI APIs. You need to set up API keys in your `.env` file:
+
+1. Create a copy of `.env.example` as `.env` (if not already done)
+2. Add your Anthropic API key (for Claude) to ANTHROPIC_API_KEY
+3. Add your OpenAI API key to OPENAI_API_KEY
+4. Optional: Add your ElevenLabs API key for voice features to REACT_APP_ELEVENLABS_API_KEY
+
+Example `.env` file:
+```
+ANTHROPIC_API_KEY=sk-ant-api03-your-key-here
+OPENAI_API_KEY=sk-your-openai-key-here
+REACT_APP_ELEVENLABS_API_KEY=your-elevenlabs-key-here
+```
+
+**Note:** The Philosopher Debate feature requires a valid OpenAI API key.
+
 
 ## Learn More
 
