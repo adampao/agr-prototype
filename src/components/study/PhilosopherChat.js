@@ -375,6 +375,11 @@ const PhilosopherChat = () => {
             if (currentUser.preferences && currentUser.preferences.interests && currentUser.preferences.interests.length > 0) {
               userContext += `Their philosophical interests include: ${currentUser.preferences.interests.join(", ")}. `;
             }
+            
+            // Include custom context if available
+            if (currentUser.customContext) {
+              userContext += `\n\nPersonal context about this individual: ${currentUser.customContext}`;
+            }
           }
         
           // Send to Claude API via our Netlify function
@@ -505,14 +510,33 @@ const PhilosopherChat = () => {
         console.error('Error getting philosopher response:', error);
         setApiError('There was an error communicating with the philosopher. Please try again.');
         
-        // Add more descriptive error message in chat
-        setMessages(prevMessages => [
-          ...prevMessages, 
-          { 
-            sender: 'system', 
-            text: `I apologize, but I'm having trouble connecting with the philosophical realm at the moment. ${error.response?.data?.hint || error.message || "Please try again shortly."}` 
-          }
-        ]);
+        // Check if this is a token limit error
+        if (error.message && error.message.includes("Token limit reached")) {
+          // Show token limit message
+          setMessages(prevMessages => [
+            ...prevMessages, 
+            { 
+              sender: 'system', 
+              text: "You've reached your daily token limit. Please complete the feedback form or update your settings in your profile to continue your philosophical journey." 
+            }
+          ]);
+          
+          // Optional: Show a more prominent notification or redirect to feedback form
+          setTimeout(() => {
+            if (window.confirm("You've reached your daily token limit. Would you like to visit your profile to check your usage?")) {
+              window.location.href = "/profile";
+            }
+          }, 1000);
+        } else {
+          // Add generic error message for other errors
+          setMessages(prevMessages => [
+            ...prevMessages, 
+            { 
+              sender: 'system', 
+              text: `I apologize, but I'm having trouble connecting with the philosophical realm at the moment. ${error.response?.data?.hint || error.message || "Please try again shortly."}` 
+            }
+          ]);
+        }
       } finally {
         setIsProcessing(false);
         
@@ -605,10 +629,25 @@ const PhilosopherChat = () => {
               });
             
             // Generate a direct answer to the user's question
+            // Include user context for the new philosopher
+            let userContext = "";
+            if (currentUser) {
+              userContext = `You are speaking to ${currentUser.name || "a seeker of wisdom"}. `;
+              if (currentUser.preferences && currentUser.preferences.interests && currentUser.preferences.interests.length > 0) {
+                userContext += `Their philosophical interests include: ${currentUser.preferences.interests.join(", ")}. `;
+              }
+              
+              // Include custom context if available
+              if (currentUser.customContext) {
+                userContext += `\n\nPersonal context about this individual: ${currentUser.customContext}`;
+              }
+            }
+            
             const response = await sendMessageToPhilosopher(
               newPhilosopher.id,
               mostRecentUserMessage,
-              previousMessages
+              previousMessages,
+              userContext
             );
             
             // Combine the introduction with the answer

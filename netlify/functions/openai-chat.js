@@ -28,12 +28,31 @@ exports.handler = async function(event, context) {
   try {
     // Parse the incoming request body
     const requestBody = JSON.parse(event.body);
-    const { prompt, philosopherId, previousMessages = [], userContext = "", context = "debate" } = requestBody;
+    const { 
+      prompt, 
+      philosopherId, 
+      previousMessages = [], 
+      userContext = "", 
+      context = "debate",
+      userTokenUsage,
+      tokenLimit
+    } = requestBody;
     
     if (!prompt || !philosopherId) {
       return {
         statusCode: 400,
         body: JSON.stringify({ error: "Missing required parameters" })
+      };
+    }
+    
+    // Check token limit if provided
+    if (tokenLimit && userTokenUsage && userTokenUsage.dailyUsed >= tokenLimit) {
+      return {
+        statusCode: 429,
+        body: JSON.stringify({ 
+          error: "Token limit reached", 
+          message: "You've reached your daily token limit. Please complete the feedback form to gain more access."
+        })
       };
     }
     

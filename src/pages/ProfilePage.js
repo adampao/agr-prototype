@@ -11,7 +11,7 @@ import PhilosophicalCompass from '../components/profile/PhilosophicalCompass';
 const ProfilePage = () => {
   const [activeTab, setActiveTab] = useState('profile');
   const [authModalOpen, setAuthModalOpen] = useState(false);
-  const { currentUser, updateUserProfile } = useAuth();
+  const { currentUser, updateUserProfile, updateCustomContext } = useAuth();
   const [user, setUser] = useState(null);
   
   // Set up default achievements for new users
@@ -387,6 +387,83 @@ const ProfilePage = () => {
             </Card>
             
             <Card>
+              <h3 className="text-lg font-serif font-semibold text-aegeanBlue mb-6">
+                Custom Context for AI
+              </h3>
+              
+              <div className="mb-4">
+                <p className="text-aegeanBlue/70 text-sm mb-4">
+                  Provide personal context that philosophers can use to give you more tailored 
+                  wisdom and advice. This information will be included in all your conversations.
+                </p>
+                <div className="mb-4">
+                  <label 
+                    htmlFor="custom-context" 
+                    className="block text-aegeanBlue font-medium mb-1"
+                  >
+                    Your Personal Context
+                  </label>
+                  <textarea
+                    id="custom-context"
+                    className="w-full px-3 py-2 border border-aegeanBlue/20 rounded-md focus:outline-none focus:ring-2 focus:ring-aegeanBlue/40"
+                    rows="6"
+                    placeholder="Examples: I'm a 35-year-old teacher living in a coastal city. I'm passionate about education, literature, and environmental issues. I'm currently working on finding better work-life balance and managing anxiety."
+                    value={user.customContext || ''}
+                    onChange={(e) => handleUpdateUser('customContext', e.target.value)}
+                  ></textarea>
+                  <p className="text-aegeanBlue/50 text-xs mt-1">
+                    Include details like age, profession, location, interests, goals, or challenges you'd 
+                    like the philosophers to be aware of when responding to you.
+                  </p>
+                </div>
+                <div className="mt-6">
+                  <Button 
+                    type="button"
+                    onClick={() => {
+                      updateCustomContext(user.customContext); 
+                      handleSavePreferences();
+                    }}
+                  >
+                    Save Context
+                  </Button>
+                </div>
+              </div>
+            </Card>
+            
+            <Card className="md:col-span-2">
+              <h3 className="text-lg font-serif font-semibold text-aegeanBlue mb-6">
+                Token Usage
+              </h3>
+              
+              <div className="mb-4">
+                <div className="bg-aegeanBlue/5 p-4 rounded-lg mb-4">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-aegeanBlue font-medium">Daily Usage</span>
+                    <span className="text-aegeanBlue font-bold">
+                      {user.tokenUsage?.dailyUsed || 0} / {user.tokenUsage?.dailyLimit || 15000}
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2.5">
+                    <div 
+                      className="bg-oracleGreen h-2.5 rounded-full" 
+                      style={{ 
+                        width: `${Math.min(100, ((user.tokenUsage?.dailyUsed || 0) / (user.tokenUsage?.dailyLimit || 15000)) * 100)}%` 
+                      }}
+                    ></div>
+                  </div>
+                  <p className="text-aegeanBlue/70 text-xs mt-2">
+                    Resets at midnight local time. Token usage is estimated and may not be exact.
+                  </p>
+                </div>
+                
+                <div className="text-sm text-aegeanBlue/70 mb-2">
+                  <p>Total tokens used: <span className="font-medium">{user.tokenUsage?.totalUsed || 0}</span></p>
+                  <p>Last reset: <span className="font-medium">{new Date(user.tokenUsage?.lastResetDate || Date.now()).toLocaleString()}</span></p>
+                </div>
+              </div>
+            </Card>
+            
+            <Card className="md:col-span-2">
               <h3 className="text-lg font-serif font-semibold text-aegeanBlue mb-6">
                 Notification Preferences
               </h3>

@@ -134,8 +134,8 @@ ${Object.entries(this.expertise)
   .join('\n')}
 `;
 
-    // Add any user-specific context
-    const userContextSection = userContext ? `\nAdditional context: ${userContext}` : '';
+    // Add any user-specific context with more prominence
+    const userContextSection = userContext ? `\n\nIMPORTANT USER CONTEXT: ${userContext}\n\nMake use of the above context about the user when responding to them, integrating it naturally into your responses as appropriate.` : '';
     
     // Example of conditional inclusion of general instructions
     // This excludes general instructions from debate context
