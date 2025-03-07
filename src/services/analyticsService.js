@@ -169,6 +169,7 @@ const sendFeedbackToBackend = async (feedbackData) => {
   }
 };
 
+
 // Initialize on import
 initializeTrackingData();
 

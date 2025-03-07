@@ -43,6 +43,10 @@ const Header = () => {
     setAuthMode('signup');
     setAuthModalOpen(true);
   };
+  
+  const handleAuthModalClose = () => {
+    setAuthModalOpen(false);
+  };
 
   return (
     <header className="bg-marbleWhite border-b border-aegeanBlue/10">
@@ -208,7 +212,7 @@ const Header = () => {
       {/* Auth Modal */}
       <AuthModal
         isOpen={authModalOpen}
-        onClose={() => setAuthModalOpen(false)}
+        onClose={handleAuthModalClose}
         initialMode={authMode}
       />
     </header>

@@ -196,6 +196,7 @@ const getNextTurn = (currentId) => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [debateMessages]);
   
+  
   // Initialize vote counts when philosophers change
   useEffect(() => {
     const newVotes = {};
@@ -530,6 +531,7 @@ if (
       
     } catch (error) {
       console.error('Error handling user intervention:', error);
+      // Handle errors
       setDebateMessages(messages => [
         ...messages,
         { 
@@ -718,6 +720,7 @@ if (
       
     } catch (error) {
       console.error('Error concluding debate:', error);
+      // Handle errors
       setDebateMessages(messages => [
         ...messages,
         { 

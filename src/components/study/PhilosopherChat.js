@@ -331,6 +331,7 @@ const PhilosopherChat = () => {
       }
     }
   }, [selectedPhilosopher, currentUser, userGreeted, messages.length, voiceEnabled]);
+  
 
   
   const handleSendMessage = async () => {
@@ -510,33 +511,14 @@ const PhilosopherChat = () => {
         console.error('Error getting philosopher response:', error);
         setApiError('There was an error communicating with the philosopher. Please try again.');
         
-        // Check if this is a token limit error
-        if (error.message && error.message.includes("Token limit reached")) {
-          // Show token limit message
-          setMessages(prevMessages => [
-            ...prevMessages, 
-            { 
-              sender: 'system', 
-              text: "You've reached your daily token limit. Please complete the feedback form or update your settings in your profile to continue your philosophical journey." 
-            }
-          ]);
-          
-          // Optional: Show a more prominent notification or redirect to feedback form
-          setTimeout(() => {
-            if (window.confirm("You've reached your daily token limit. Would you like to visit your profile to check your usage?")) {
-              window.location.href = "/profile";
-            }
-          }, 1000);
-        } else {
-          // Add generic error message for other errors
-          setMessages(prevMessages => [
-            ...prevMessages, 
-            { 
-              sender: 'system', 
-              text: `I apologize, but I'm having trouble connecting with the philosophical realm at the moment. ${error.response?.data?.hint || error.message || "Please try again shortly."}` 
-            }
-          ]);
-        }
+        // Add generic error message
+        setMessages(prevMessages => [
+          ...prevMessages, 
+          { 
+            sender: 'system', 
+            text: `I apologize, but I'm having trouble connecting with the philosophical realm at the moment. ${error.response?.data?.hint || error.message || "Please try again shortly."}` 
+          }
+        ]);
       } finally {
         setIsProcessing(false);
         

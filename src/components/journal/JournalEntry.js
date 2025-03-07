@@ -31,11 +31,14 @@ const JournalEntry = ({ entry, onSaveReflection, onDelete, initiallyExpanded = f
       setAiResponse(insight);
     } catch (error) {
       console.error('Error getting AI response:', error);
+      
+      // Generic error message
       setAiResponse("I seem to be contemplating too deeply. Perhaps we can discuss this another time.");
     } finally {
       setIsLoading(false);
     }
   };
+  
   
   const formatDate = (dateString) => {
     const date = new Date(dateString);

@@ -7,7 +7,7 @@ const AuthContext = createContext(null);
 const defaultUser = {
   name: 'Philosophical Seeker',
   email: '',
-  avatar: 'https://via.placeholder.com/150',
+  avatar: '/images/avatars/avatar.png',
   joinDate: new Date().toISOString(),
   preferences: {
     learningStyle: 'interactive',
@@ -38,13 +38,6 @@ const defaultUser = {
     lastUpdated: null
   },
   achievements: [],
-  // Token usage tracking
-  tokenUsage: {
-    totalUsed: 0,
-    dailyUsed: 0,
-    lastResetDate: new Date().toISOString(),
-    dailyLimit: 15000 // Default daily token limit
-  },
   // Custom context for AI personalization
   customContext: ''
 };
@@ -57,7 +50,11 @@ export const AuthProvider = ({ children }) => {
     // Check if a user is stored in localStorage
     const storedUser = localStorage.getItem('oikosystem_user');
     if (storedUser) {
-      setCurrentUser(JSON.parse(storedUser));
+      const userData = JSON.parse(storedUser);
+      
+      // Token limit setting removed
+      
+      setCurrentUser(userData);
     }
     setLoading(false);
   }, []);
@@ -124,60 +121,6 @@ export const AuthProvider = ({ children }) => {
     setCurrentUser(updatedUser);
   };
 
-  // Function to track token usage
-  const trackTokenUsage = (tokens) => {
-    if (!currentUser) return false;
-    
-    // Check if we need to reset daily counts (new day)
-    const now = new Date();
-    const lastReset = new Date(currentUser.tokenUsage.lastResetDate);
-    const isNewDay = now.toDateString() !== lastReset.toDateString();
-    
-    const updatedUser = {
-      ...currentUser,
-      tokenUsage: {
-        ...currentUser.tokenUsage,
-        totalUsed: currentUser.tokenUsage.totalUsed + tokens,
-        dailyUsed: isNewDay ? tokens : currentUser.tokenUsage.dailyUsed + tokens,
-        lastResetDate: isNewDay ? now.toISOString() : currentUser.tokenUsage.lastResetDate
-      }
-    };
-    
-    localStorage.setItem('oikosystem_user', JSON.stringify(updatedUser));
-    setCurrentUser(updatedUser);
-    
-    // Return whether the user is within their daily limit
-    return updatedUser.tokenUsage.dailyUsed <= updatedUser.tokenUsage.dailyLimit;
-  };
-  
-  // Function to check if the user has remaining tokens
-  const checkTokenLimit = () => {
-    if (!currentUser) return true; // No user, no limits applied
-    
-    // Check if we need to reset daily counts (new day)
-    const now = new Date();
-    const lastReset = new Date(currentUser.tokenUsage.lastResetDate);
-    const isNewDay = now.toDateString() !== lastReset.toDateString();
-    
-    // If it's a new day, reset the counter
-    if (isNewDay) {
-      const updatedUser = {
-        ...currentUser,
-        tokenUsage: {
-          ...currentUser.tokenUsage,
-          dailyUsed: 0,
-          lastResetDate: now.toISOString()
-        }
-      };
-      
-      localStorage.setItem('oikosystem_user', JSON.stringify(updatedUser));
-      setCurrentUser(updatedUser);
-      return true; // User can make requests
-    }
-    
-    // Check if the user has reached their daily limit
-    return currentUser.tokenUsage.dailyUsed < currentUser.tokenUsage.dailyLimit;
-  };
   
   // Function to update the user's custom context
   const updateCustomContext = (newContext) => {
@@ -200,8 +143,6 @@ export const AuthProvider = ({ children }) => {
     signout,
     updateUserProfile,
     loading,
-    trackTokenUsage,
-    checkTokenLimit,
     updateCustomContext
   };
 

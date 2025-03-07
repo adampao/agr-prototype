@@ -33,9 +33,7 @@ exports.handler = async function(event, context) {
       philosopherId, 
       previousMessages = [], 
       userContext = "", 
-      context = "debate",
-      userTokenUsage,
-      tokenLimit
+      context = "debate"
     } = requestBody;
     
     if (!prompt || !philosopherId) {
@@ -45,16 +43,6 @@ exports.handler = async function(event, context) {
       };
     }
     
-    // Check token limit if provided
-    if (tokenLimit && userTokenUsage && userTokenUsage.dailyUsed >= tokenLimit) {
-      return {
-        statusCode: 429,
-        body: JSON.stringify({ 
-          error: "Token limit reached", 
-          message: "You've reached your daily token limit. Please complete the feedback form to gain more access."
-        })
-      };
-    }
     
     let systemPrompt;
     

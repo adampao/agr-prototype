@@ -136,26 +136,9 @@ export const sendMessageToPhilosopher = async (
     // This is necessary because hooks can't be called in regular functions
     const storedUser = localStorage.getItem('oikosystem_user');
     let userData = null;
-    let withinLimit = true;
     
     if (storedUser) {
       userData = JSON.parse(storedUser);
-      
-      // Check token limit logic (replicated from AuthContext.js)
-      if (userData.tokenUsage) {
-        const now = new Date();
-        const lastReset = new Date(userData.tokenUsage.lastResetDate);
-        const isNewDay = now.toDateString() !== lastReset.toDateString();
-        
-        // If it's a new day, we're within limit
-        if (!isNewDay && userData.tokenUsage.dailyUsed >= userData.tokenUsage.dailyLimit) {
-          withinLimit = false;
-        }
-      }
-      
-      if (!withinLimit) {
-        throw new Error("Token limit reached. Please complete the feedback form to gain more access.");
-      }
     }
     
     // Determine which API to use based on feature and philosopher
@@ -175,44 +158,15 @@ export const sendMessageToPhilosopher = async (
       ? '/.netlify/functions/openai-chat'
       : '/.netlify/functions/claude-chat';
     
-    // Add token usage information if user is logged in
-    const tokenUsage = userData && userData.tokenUsage ? userData.tokenUsage : null;
-    const tokenLimit = userData && userData.tokenUsage ? userData.tokenUsage.dailyLimit : null;
-    
     // Add the context parameter to specify which type of prompt to use
     const response = await axios.post(endpoint, {
       prompt: message,
       philosopherId,
       previousMessages,
       userContext: combinedUserContext,
-      context: feature, // Pass the context to the serverless function
-      userTokenUsage: tokenUsage,
-      tokenLimit: tokenLimit
+      context: feature // Pass the context to the serverless function
     });
     
-    // Estimate token usage (very rough estimate based on message lengths)
-    if (userData) {
-      // Roughly estimate token usage (prompt + response)
-      const promptTokens = message.length / 4; // Very rough estimate
-      const responseTokens = response.data.response.length / 4; // Very rough estimate
-      const totalTokens = Math.ceil(promptTokens + responseTokens);
-      
-      // Track token usage by updating localStorage directly
-      const now = new Date();
-      const lastReset = userData.tokenUsage ? new Date(userData.tokenUsage.lastResetDate) : now;
-      const isNewDay = now.toDateString() !== lastReset.toDateString();
-      
-      // Update token usage
-      userData.tokenUsage = {
-        ...userData.tokenUsage,
-        totalUsed: (userData.tokenUsage?.totalUsed || 0) + totalTokens,
-        dailyUsed: isNewDay ? totalTokens : (userData.tokenUsage?.dailyUsed || 0) + totalTokens,
-        lastResetDate: isNewDay ? now.toISOString() : userData.tokenUsage?.lastResetDate || now.toISOString()
-      };
-      
-      // Save updated user data
-      localStorage.setItem('oikosystem_user', JSON.stringify(userData));
-    }
     
     return response.data;
   } catch (error) {
@@ -298,10 +252,7 @@ export const getPhilosophicalInsight = async (entry, philosopherId = 'aristotle'
   } catch (error) {
     console.error('Error getting philosophical insight:', error);
     
-    // If this is a token limit error, pass it on
-    if (error.message && error.message.includes("Token limit reached")) {
-      throw error;
-    }
+    // Error handling for API issues
     
     // Return a default insight if the API call fails for other reasons
     return "The wisdom you seek may sometimes be found in silence. Consider this moment an opportunity for your own reflection.";

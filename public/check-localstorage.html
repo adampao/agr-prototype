@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Check LocalStorage</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    pre {
+      background: #f5f5f5;
+      padding: 10px;
+      border-radius: 5px;
+      overflow-x: auto;
+    }
+  </style>
+</head>
+<body>
+  <h1>LocalStorage Contents</h1>
+  <div id="output"></div>
+
+  <script>
+    // Function to display localStorage contents
+    function displayLocalStorage() {
+      const output = document.getElementById('output');
+      output.innerHTML = '';
+
+      // Get oikosystem_user data
+      const userData = localStorage.getItem('oikosystem_user');
+      if (userData) {
+        const h2 = document.createElement('h2');
+        h2.textContent = 'oikosystem_user';
+        output.appendChild(h2);
+
+        const pre = document.createElement('pre');
+        try {
+          const parsed = JSON.parse(userData);
+          pre.textContent = JSON.stringify(parsed, null, 2);
+        } catch (e) {
+          pre.textContent = userData;
+        }
+        output.appendChild(pre);
+
+        // Token usage display removed
+      } else {
+        const p = document.createElement('p');
+        p.textContent = 'No oikosystem_user data found in localStorage';
+        output.appendChild(p);
+      }
+
+      // Show all other localStorage items
+      const h2 = document.createElement('h2');
+      h2.textContent = 'All LocalStorage Items';
+      output.appendChild(h2);
+
+      if (localStorage.length === 0) {
+        const p = document.createElement('p');
+        p.textContent = 'LocalStorage is empty';
+        output.appendChild(p);
+      } else {
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          const value = localStorage.getItem(key);
+          
+          const itemDiv = document.createElement('div');
+          const keyEl = document.createElement('h3');
+          keyEl.textContent = key;
+          itemDiv.appendChild(keyEl);
+          
+          const pre = document.createElement('pre');
+          try {
+            const parsed = JSON.parse(value);
+            pre.textContent = JSON.stringify(parsed, null, 2);
+          } catch (e) {
+            pre.textContent = value;
+          }
+          itemDiv.appendChild(pre);
+          
+          output.appendChild(itemDiv);
+        }
+      }
+    }
+
+    // Run when the page loads
+    displayLocalStorage();
+  </script>
+</body>
+</html>

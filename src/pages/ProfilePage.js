@@ -68,12 +68,21 @@ const ProfilePage = () => {
     alert('Preferences saved successfully!');
   };
   
-  // Show auth modal if not logged in
+  // Show auth modal if not logged in, but only on initial render
   useEffect(() => {
-    if (!currentUser && !authModalOpen) {
+    if (!currentUser) {
       setAuthModalOpen(true);
     }
-  }, [currentUser, authModalOpen]);
+  }, []);  // Empty dependency array = run once on mount
+  
+  // Handle modal close - navigates back to previous page if not logged in
+  const handleAuthModalClose = () => {
+    setAuthModalOpen(false);
+    // After closing, if still not logged in, go back to previous page
+    if (!currentUser) {
+      window.history.back();
+    }
+  };
   
   // Redirect to home if not logged in
   if (!currentUser) {
@@ -99,7 +108,7 @@ const ProfilePage = () => {
           {/* Auth Modal */}
           <AuthModal
             isOpen={authModalOpen}
-            onClose={() => setAuthModalOpen(false)}
+            onClose={handleAuthModalClose}
             initialMode="signin"
           />
         </div>
@@ -430,38 +439,6 @@ const ProfilePage = () => {
               </div>
             </Card>
             
-            <Card className="md:col-span-2">
-              <h3 className="text-lg font-serif font-semibold text-aegeanBlue mb-6">
-                Token Usage
-              </h3>
-              
-              <div className="mb-4">
-                <div className="bg-aegeanBlue/5 p-4 rounded-lg mb-4">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-aegeanBlue font-medium">Daily Usage</span>
-                    <span className="text-aegeanBlue font-bold">
-                      {user.tokenUsage?.dailyUsed || 0} / {user.tokenUsage?.dailyLimit || 15000}
-                    </span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2.5">
-                    <div 
-                      className="bg-oracleGreen h-2.5 rounded-full" 
-                      style={{ 
-                        width: `${Math.min(100, ((user.tokenUsage?.dailyUsed || 0) / (user.tokenUsage?.dailyLimit || 15000)) * 100)}%` 
-                      }}
-                    ></div>
-                  </div>
-                  <p className="text-aegeanBlue/70 text-xs mt-2">
-                    Resets at midnight local time. Token usage is estimated and may not be exact.
-                  </p>
-                </div>
-                
-                <div className="text-sm text-aegeanBlue/70 mb-2">
-                  <p>Total tokens used: <span className="font-medium">{user.tokenUsage?.totalUsed || 0}</span></p>
-                  <p>Last reset: <span className="font-medium">{new Date(user.tokenUsage?.lastResetDate || Date.now()).toLocaleString()}</span></p>
-                </div>
-              </div>
-            </Card>
             
             <Card className="md:col-span-2">
               <h3 className="text-lg font-serif font-semibold text-aegeanBlue mb-6">
@@ -579,7 +556,7 @@ const ProfilePage = () => {
       {/* Auth Modal */}
       <AuthModal
         isOpen={authModalOpen}
-        onClose={() => setAuthModalOpen(false)}
+        onClose={handleAuthModalClose}
         initialMode="signin"
       />
     </Layout>

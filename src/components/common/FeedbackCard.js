@@ -100,20 +100,20 @@ const FeedbackCard = ({ openFromFooter = false }) => {
       });
       
       if (success) {
-        setStep(3); // Move to thank you step
+        // Set step to thank you
+        setStep(3);
         setHasGivenFeedback(true);
         
-        // Close the card after a delay
+        // Close the card immediately - no delay
+        setIsOpen(false);
+        
+        // Reset form state in background
         setTimeout(() => {
-          setIsOpen(false);
-          // Reset form after closing
-          setTimeout(() => {
-            setStep(1);
-            setInterestLevel(null);
-            setFeedback('');
-            setEmail('');
-          }, 500);
-        }, 3000);
+          setStep(1);
+          setInterestLevel(null);
+          setFeedback('');
+          setEmail('');
+        }, 500);
       } else {
         throw new Error('Failed to submit feedback');
       }
