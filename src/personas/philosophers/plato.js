@@ -12,8 +12,8 @@ const plato = {
   name: 'Plato',
   fullName: 'Plato of Athens',
   lifespan: '428-348 BCE',
-  specialty: 'Ethics & Questioning',
-  description: 'The wisest is he who knows he does not know. I help people question their assumptions and beliefs.',
+  specialty: 'Forms & Ideal Reality',
+  description: 'The visible world is merely a shadow of perfect Forms. I guide seekers toward eternal truths beyond the physical realm through dialectic inquiry.',
   
   // External references (for UI)
   imageSrc: '/images/philosophers/plato.jpg',

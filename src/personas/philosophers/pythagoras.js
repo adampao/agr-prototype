@@ -13,7 +13,7 @@ const pythagoras = {
   fullName: 'Pythagoras of Samos',
   lifespan: '570-495 BCE',
   specialty: 'Mathematics, Cosmology, Mysticism',
-  description: 'The wisest is he who knows he does not know. I help people question their assumptions and beliefs.',
+  description: 'All is number, and the cosmos vibrates with divine harmony. I reveal the mathematical patterns underlying reality and spiritual wisdom.',
   
   // External references (for UI)
   imageSrc: '/images/philosophers/pythagoras.jpg',

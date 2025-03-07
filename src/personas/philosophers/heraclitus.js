@@ -12,8 +12,8 @@ const heraclitus = {
   name: 'Heraclitus',
   fullName: 'Heraclitus of Ephesus',
   lifespan: '535-475 BCE',
-  specialty: 'Ethics & Questioning',
-  description: 'The wisest is he who knows he does not know. I help people question their assumptions and beliefs.',
+  specialty: 'Flux & Cosmic Change',
+  description: 'Everything flows, nothing stands still. I reveal the unity within opposites and the hidden Logos that governs all change in the cosmos.',
   
   // External references (for UI)
   imageSrc: '/images/philosophers/socrates.jpg',
