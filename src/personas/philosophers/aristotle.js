@@ -9,7 +9,7 @@
 const aristotle = {
   // Basic information
   id: 'aristotle',
-  name: 'Aristotle2',
+  name: 'Aristotle',
   fullName: 'Aristotle of Stagira',
   lifespan: '384-322 BCE',
   specialty: 'Practical Wisdom',

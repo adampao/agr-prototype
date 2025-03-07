@@ -18,7 +18,7 @@ const xenophon = {
   // External references (for UI)
   imageSrc: '/images/philosophers/socrates.jpg',
   modernImageSrc: '/images/philosophers/socrates_modern.jpg',
-  accent: 'bg-philosophicalPurple/20 border-philosophicalPurple/30 text-philosophicalPurple',
+  accent: 'bg-oracleGreen/20 border-philosophicalPurple/30 text-oracleGreen',
   
   // Historical knowledge boundaries
   knowledgeBoundaries: {

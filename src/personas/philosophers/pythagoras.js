@@ -6,7 +6,7 @@
  * areas of expertise, and prompt templates.
  */
 
-const socrates = {
+const pythagoras = {
   // Basic information
   id: 'pythagoras',
   name: 'Pythagoras',
@@ -125,4 +125,4 @@ ${Object.entries(this.expertise)
   }
 };
 
-export default socrates;
+export default pythagoras;

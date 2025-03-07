@@ -18,7 +18,7 @@ const heraclitus = {
   // External references (for UI)
   imageSrc: '/images/philosophers/socrates.jpg',
   modernImageSrc: '/images/philosophers/socrates_modern.jpg',
-  accent: 'bg-philosophicalPurple/20 border-philosophicalPurple/30 text-philosophicalPurple',
+  accent: 'bg-terracotta/20 border-philosophicalPurple/30 text-terracotta',
   
   // Historical knowledge boundaries
   knowledgeBoundaries: {

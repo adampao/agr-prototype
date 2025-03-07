@@ -6,7 +6,7 @@
  * areas of expertise, and prompt templates.
  */
 
-const socrates = {
+const plato = {
   // Basic information
   id: 'plato',
   name: 'Plato',
@@ -18,7 +18,7 @@ const socrates = {
   // External references (for UI)
   imageSrc: '/images/philosophers/plato.jpg',
   modernImageSrc: '/images/philosophers/plato_modern.jpg',
-  accent: 'bg-philosophicalPurple/20 border-philosophicalPurple/30 text-philosophicalPurple',
+  accent: 'bg-aegeanBlue/20 border-philosophicalPurple/30 text-aegeanBlue',
   
   // Historical knowledge boundaries
   knowledgeBoundaries: {
@@ -125,4 +125,4 @@ ${Object.entries(this.expertise)
   }
 };
 
-export default socrates;
+export default plato;
