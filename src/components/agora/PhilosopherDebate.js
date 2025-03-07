@@ -1,79 +1,24 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Button from '../common/Button';
-import { sendMessageToPhilosopher } from '../../services/claudeApi';
+import { sendMessageToPhilosopher, API_PROVIDERS } from '../../services/aiApi';
 import PhilosopherSwitch from '../study/PhilosopherSwitchComponent';
 import { useAuth } from '../../services/AuthContext';
+import { getAllPersonas } from '../../personas';
 
-// Import philosophers data (same as used in PhilosopherChat.js)
-const philosophers = [
-  { 
-    id: 'socrates', 
-    name: 'Socrates', 
-    specialty: 'Ethics & Questioning',
-    timePeriod: '470-399 BCE',
-    description: 'The wisest is he who knows he does not know. I will help you question your assumptions and beliefs.',
-    imageSrc: '/images/philosophers/socrates.jpg',
-    modernImageSrc: '/images/philosophers/socrates_modern.jpg',
-    accent: 'bg-philosophicalPurple/20 border-philosophicalPurple/30 text-philosophicalPurple',
-    darkAccent: 'bg-philosophicalPurple text-white',
-  },
-  { 
-    id: 'aristotle', 
-    name: 'Aristotle', 
-    specialty: 'Practical Wisdom',
-    timePeriod: '384-322 BCE',
-    description: 'Virtue lies in the golden mean. I will help you find balance and practical wisdom in your life.',
-    imageSrc: '/images/philosophers/aristotle.jpg',
-    modernImageSrc: '/images/philosophers/aristotle_modern.jpg',
-    accent: 'bg-aegeanBlue/20 border-aegeanBlue/30 text-aegeanBlue',
-    darkAccent: 'bg-aegeanBlue text-white',
-  },
-  { 
-    id: 'plato', 
-    name: 'Plato', 
-    specialty: 'Forms & Ideals',
-    timePeriod: '428-348 BCE',
-    description: 'Reality is found beyond appearances. I will guide you to understand the eternal forms behind the material world.',
-    imageSrc: '/images/philosophers/plato.jpg',
-    modernImageSrc: '/images/philosophers/plato_modern.jpg',
-    accent: 'bg-oliveGold/20 border-oliveGold/30 text-oliveGold/90',
-    darkAccent: 'bg-oliveGold text-white',
-  },
-  { 
-    id: 'heraclitus', 
-    name: 'Heraclitus', 
-    specialty: 'Flux & Change',
-    timePeriod: '535-475 BCE',
-    description: 'Everything flows, nothing stays. I will help you understand the constant change that pervades all existence.',
-    imageSrc: '/images/philosophers/heraclitus.jpg',
-    modernImageSrc: '/images/philosophers/heraclitus_modern.jpg',
-    accent: 'bg-terracotta/20 border-terracotta/30 text-terracotta',
-    darkAccent: 'bg-terracotta text-white',
-  },
-  { 
-    id: 'pythagoras', 
-    name: 'Pythagoras', 
-    specialty: 'Mathematics & Harmony',
-    timePeriod: '570-495 BCE',
-    description: 'All things are numbers. I will reveal how mathematical principles underlie the harmony of the cosmos.',
-    imageSrc: '/images/philosophers/pythagoras.jpg',
-    modernImageSrc: '/images/philosophers/pythagoras_modern.jpg',
-    accent: 'bg-philosophicalPurple/20 border-philosophicalPurple/30 text-philosophicalPurple',
-    darkAccent: 'bg-philosophicalPurple text-white',
-  },
-  { 
-    id: 'xenophon', 
-    name: 'Xenophon', 
-    specialty: 'Leadership & History',
-    timePeriod: '430-354 BCE',
-    description: 'True leadership comes from character. I will share practical wisdom from historical examples and lived experience.',
-    imageSrc: '/images/philosophers/xenophon.jpg',
-    modernImageSrc: '/images/philosophers/xenophon_modern.jpg',
-    accent: 'bg-oracleGreen/20 border-oracleGreen/30 text-oracleGreen',
-    darkAccent: 'bg-oracleGreen text-white',
-  },
-];
+// Import philosophers data from persona system
+const philosopherPersonas = getAllPersonas();
+const philosophers = Object.values(philosopherPersonas).map(philosopher => ({
+  id: philosopher.id,
+  name: philosopher.name,
+  specialty: philosopher.specialty,
+  timePeriod: philosopher.lifespan,
+  description: philosopher.description,
+  imageSrc: philosopher.imageSrc,
+  modernImageSrc: philosopher.modernImageSrc,
+  accent: philosopher.accent,
+  darkAccent: philosopher.accent?.replace('/20', '').replace('/30', '').replace('/90', '') + ' text-white'
+}));
 
 // Sample debate topics
 const debateTopics = [
@@ -115,6 +60,7 @@ const PhilosopherDebate = () => {
   const [philosopher2, setPhilosopher2] = useState(null);
   const [philosopher3, setPhilosopher3] = useState(null); // Add the third philosopher
   const [philosopher4, setPhilosopher4] = useState(null); // Add the fourth philosopher
+  const [userContext, setUserContext] = useState("");
   const [philosopherInvites, setPhilosopherInvites] = useState({});
   const [selectedTopic, setSelectedTopic] = useState(null);
   const [customTopic, setCustomTopic] = useState('');
@@ -290,7 +236,9 @@ const getNextTurn = (currentId) => {
       const response = await sendMessageToPhilosopher(
         philosopher1.id,
         prompt,
-        []
+        [],
+        userContext,
+        'debate' // Specify the feature (debate uses OpenAI)
       );
       
       // Add philosopher 1's opening statement
@@ -310,7 +258,9 @@ const getNextTurn = (currentId) => {
       const response2 = await sendMessageToPhilosopher(
         philosopher2.id,
         prompt2,
-        []
+        [],
+        userContext,
+        'debate' // Specify the feature (debate uses OpenAI)
       );
       
       // Add philosopher 2's opening statement
@@ -330,11 +280,17 @@ const getNextTurn = (currentId) => {
       
     } catch (error) {
       console.error('Error starting debate:', error);
+      
+      // Check if it's an OpenAI API key issue
+      const errorMessage = error.message && error.message.includes('OpenAI API key') 
+        ? 'The debate feature requires an OpenAI API key. Please add a valid key to your .env file.'
+        : `There was an error starting the debate. ${error.message}`;
+      
       setDebateMessages(messages => [
         ...messages,
         { 
           type: 'system', 
-          text: `There was an error starting the debate. ${error.message}` 
+          text: errorMessage
         }
       ]);
     } finally {
@@ -389,7 +345,9 @@ Keep your response concise (about 150 words) and remember to maintain your histo
       const response = await sendMessageToPhilosopher(
         currentPhilosopher.id,
         prompt,
-        previousMessages
+        previousMessages,
+        userContext,
+        'debate' // Specify the feature (debate uses OpenAI)
       );
       
 // Check if the response mentions another philosopher
@@ -549,7 +507,9 @@ if (
       const response = await sendMessageToPhilosopher(
         respondingPhilosopherId,
         `You are ${respondingPhilosopher.name} in a philosophical debate. The audience has asked: "${userPrompt.trim()}". Please respond to this question while maintaining your philosophical position and historical perspective as ${respondingPhilosopher.name} from ancient Greece (${respondingPhilosopher.timePeriod}).`,
-        previousMessages
+        previousMessages,
+        userContext,
+        'debate' // Specify the feature (debate uses OpenAI)
       );
       
       // Add the philosopher's response to the user
@@ -640,7 +600,9 @@ if (
         response1 = await sendMessageToPhilosopher(
           philosopher1.id,
           promptConclusion1,
-          previousMessages
+          previousMessages,
+          userContext,
+          'debate' // Specify the feature (debate uses OpenAI)
         );
         
         // Add philosopher 1's conclusion
@@ -667,7 +629,9 @@ if (
               role: 'assistant', 
               content: `[${philosopher1.name}]: ${response1.response}` 
             }
-          ])
+          ]),
+          userContext,
+          'debate' // Specify the feature (debate uses OpenAI)
         );
         
         // Add philosopher 2's conclusion
@@ -694,7 +658,9 @@ if (
               role: 'assistant', 
               content: `[${philosopher1.name}]: ${response1.response}, [${philosopher2.name}]: ${response2.response}`
             }
-          ])
+          ]),
+          userContext,
+          'debate' // Specify the feature (debate uses OpenAI)
         );
         
         // Add philosopher 3's conclusion
@@ -720,7 +686,9 @@ if (
                 role: 'assistant', 
                 content: `[${philosopher1.name}]: ${response1.response}, [${philosopher2.name}]: ${response2.response}, [${philosopher3.name}]: ${response3.response}`
               }
-            ])
+            ]),
+            userContext,
+            'debate' // Specify the feature (debate uses OpenAI)
           );
           
           // Add philosopher 4's conclusion
@@ -1027,7 +995,9 @@ Please provide a brief introduction (about 100 words) explaining your perspectiv
       const response = await sendMessageToPhilosopher(
         suggestedPhil.id,
         prompt,
-        []
+        [],
+        userContext,
+        'debate' // Specify the feature (debate uses OpenAI)
       );
       
       setDebateMessages(messages => [

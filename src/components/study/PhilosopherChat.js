@@ -9,69 +9,20 @@ import AudioPlayer from '../common/AudioPlayer';
 import SequentialAudioPlayer from '../common/SequentialAudioPlayer';
 import { useAuth } from '../../services/AuthContext';
 import { trackFeatureUse } from '../../services/analyticsService';
+import { getAllPersonas } from '../../personas';
 
-const philosophers = [
-  { 
-    id: 'socrates', 
-    name: 'Socrates', 
-    specialty: 'Ethics & Questioning',
-    timePeriod: '470-399 BCE',
-    description: 'The wisest is he who knows he does not know. I will help you question your assumptions and beliefs.',
-    imageSrc: '/images/philosophers/socrates.jpg',
-    modernImageSrc: '/images/philosophers/socrates_modern.jpg',
-    accent: 'bg-philosophicalPurple/20 border-philosophicalPurple/30 text-philosophicalPurple',
-  },
-  { 
-    id: 'aristotle', 
-    name: 'Aristotle', 
-    specialty: 'Practical Wisdom',
-    timePeriod: '384-322 BCE',
-    description: 'Virtue lies in the golden mean. I will help you find balance and practical wisdom in your life.',
-    imageSrc: '/images/philosophers/aristotle.jpg',
-    modernImageSrc: '/images/philosophers/aristotle_modern.jpg',
-    accent: 'bg-aegeanBlue/20 border-aegeanBlue/30 text-aegeanBlue',
-  },
-  { 
-    id: 'plato', 
-    name: 'Plato', 
-    specialty: 'Forms & Ideals',
-    timePeriod: '428-348 BCE',
-    description: 'Reality is found beyond appearances. I will guide you to understand the eternal forms behind the material world.',
-    imageSrc: '/images/philosophers/plato.jpg',
-    modernImageSrc: '/images/philosophers/plato_modern.jpg',
-    accent: 'bg-oliveGold/20 border-oliveGold/30 text-oliveGold/90',
-  },
-  { 
-    id: 'heraclitus', 
-    name: 'Heraclitus', 
-    specialty: 'Flux & Change',
-    timePeriod: '535-475 BCE',
-    description: 'Everything flows, nothing stays. I will help you understand the constant change that pervades all existence.',
-    imageSrc: '/images/philosophers/heraclitus.jpg',
-    modernImageSrc: '/images/philosophers/heraclitus_modern.jpg',
-    accent: 'bg-terracotta/20 border-terracotta/30 text-terracotta',
-  },
-  { 
-    id: 'pythagoras', 
-    name: 'Pythagoras', 
-    specialty: 'Mathematics & Harmony',
-    timePeriod: '570-495 BCE',
-    description: 'All things are numbers. I will reveal how mathematical principles underlie the harmony of the cosmos.',
-    imageSrc: '/images/philosophers/pythagoras.jpg',
-    modernImageSrc: '/images/philosophers/pythagoras_modern.jpg',
-    accent: 'bg-philosophicalPurple/20 border-philosophicalPurple/30 text-philosophicalPurple',
-  },
-  { 
-    id: 'xenophon', 
-    name: 'Xenophon', 
-    specialty: 'Leadership & History',
-    timePeriod: '430-354 BCE',
-    description: 'True leadership comes from character. I will share practical wisdom from historical examples and lived experience.',
-    imageSrc: '/images/philosophers/xenophon.jpg',
-    modernImageSrc: '/images/philosophers/xenophon_modern.jpg',
-    accent: 'bg-oracleGreen/20 border-oracleGreen/30 text-oracleGreen',
-  },
-];
+// Get all philosophers from the persona system
+const philosopherPersonas = getAllPersonas();
+const philosophers = Object.values(philosopherPersonas).map(philosopher => ({
+  id: philosopher.id,
+  name: philosopher.name,
+  specialty: philosopher.specialty,
+  timePeriod: philosopher.lifespan,
+  description: philosopher.description,
+  imageSrc: philosopher.imageSrc,
+  modernImageSrc: philosopher.modernImageSrc,
+  accent: philosopher.accent
+}));
 
 // Sample messages for the demo, in a real app these would come from the AI
 const sampleResponses = {
