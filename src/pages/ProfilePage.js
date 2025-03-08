@@ -14,23 +14,39 @@ const ProfilePage = () => {
   const { currentUser, updateUserProfile, updateCustomContext } = useAuth();
   const [user, setUser] = useState(null);
   
+  
   // Set up default achievements for new users
   const defaultAchievements = [
     { id: 'ach1', name: 'Journey Begun', description: 'Created your account and started your philosophical journey', icon: '🏆', date: new Date().toISOString() },
   ];
   
+  const createInitializedUser = (userData) => {
+    return {
+      ...userData,
+      achievements: userData.achievements || defaultAchievements,
+      preferences: {
+        ...userData.preferences || {},
+        notifications: {
+          ...(userData.preferences?.notifications || {}),
+          dailyChallenge: userData.preferences?.notifications?.dailyChallenge ?? true,
+          journalReminder: userData.preferences?.notifications?.journalReminder ?? true,
+          communityUpdates: userData.preferences?.notifications?.communityUpdates ?? true
+        },
+        interests: userData.preferences?.interests || ['ethics', 'metaphysics', 'politics']
+      }
+    };
+  };
+
   useEffect(() => {
     if (currentUser) {
-      // If the user doesn't have any achievements yet, add the default one
-      if (!currentUser.achievements || currentUser.achievements.length === 0) {
-        const updatedUser = {
-          ...currentUser,
-          achievements: defaultAchievements
-        };
-        updateUserProfile(updatedUser);
+      const initializedUser = createInitializedUser(currentUser);
+      
+      // Only update the profile if needed
+      if (!currentUser.preferences || !currentUser.preferences.notifications) {
+        updateUserProfile(initializedUser);
       }
       
-      setUser(currentUser);
+      setUser(initializedUser);
     }
   }, [currentUser, updateUserProfile]);
   
@@ -303,7 +319,7 @@ const ProfilePage = () => {
             </h3>
             <p className="text-aegeanBlue/70 mb-6">
               The Philosophical Compass analyzes your interactions, journal entries, and debate participation 
-              to identify which ancient philosophical schools most closely align with your thinking patterns 
+              to identify which philosophical schools most closely align with your thinking patterns 
               and values. This insight can guide your further philosophical exploration.
             </p>
             
