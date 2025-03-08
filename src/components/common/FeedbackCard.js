@@ -277,152 +277,65 @@ const FeedbackCard = ({ openFromFooter = false }) => {
                       required
                     />
                   </div>
-
-                 {/* Page Ratings - Improved Mobile Layout */}
-<div className="space-y-4 my-6">
-  <h4 className="font-medium text-aegeanBlue">Rate your experience with each section:</h4>
-  
-  {/* Journal Rating */}
-  <div className="mb-6">
-    <div className="flex justify-between items-center mb-2">
-      <label className="text-sm font-medium text-aegeanBlue/70">
-        Journal
-      </label>
-      
-      <div className="flex items-center">
-        <input
-          type="checkbox"
-          id="journal-not-tested"
-          checked={journalNotTested}
-          onChange={(e) => {
-            setJournalNotTested(e.target.checked);
-            if (e.target.checked) setJournalRating(0);
-          }}
-          className="mr-1"
-        />
-        <label htmlFor="journal-not-tested" className="text-xs text-aegeanBlue/60 whitespace-nowrap">
-          I didn't test this
-        </label>
-      </div>
-    </div>
-    
-    <div className="flex items-center">
-      <div className="flex">
-        {[1, 2, 3, 4, 5].map((star) => (
-          <button
-            key={`journal-${star}`}
-            type="button"
-            onClick={() => {
-              setJournalRating(star);
-              setJournalNotTested(false);
-            }}
-            disabled={journalNotTested}
-            className={`text-2xl text-aegeanBlue focus:outline-none ${journalNotTested ? 'opacity-50 cursor-not-allowed' : ''}`}
-          >
-            {star <= journalRating ? "★" : "☆"}
-          </button>
-        ))}
-      </div>
-      <span className="ml-4 text-sm text-aegeanBlue/60">
-        {journalNotTested ? "Not tested" : journalRating > 0 ? `${journalRating}/5` : "Not rated"}
-      </span>
-    </div>
-  </div>
-  
-  {/* Study Rating */}
-  <div className="mb-6">
-    <div className="flex justify-between items-center mb-2">
-      <label className="text-sm font-medium text-aegeanBlue/70">
-        Study
-      </label>
-      
-      <div className="flex items-center">
-        <input
-          type="checkbox"
-          id="study-not-tested"
-          checked={studyNotTested}
-          onChange={(e) => {
-            setStudyNotTested(e.target.checked);
-            if (e.target.checked) setStudyRating(0);
-          }}
-          className="mr-1"
-        />
-        <label htmlFor="study-not-tested" className="text-xs text-aegeanBlue/60 whitespace-nowrap">
-          I didn't test this
-        </label>
-      </div>
-    </div>
-    
-    <div className="flex items-center">
-      <div className="flex">
-        {[1, 2, 3, 4, 5].map((star) => (
-          <button
-            key={`study-${star}`}
-            type="button"
-            onClick={() => {
-              setStudyRating(star);
-              setStudyNotTested(false);
-            }}
-            disabled={studyNotTested}
-            className={`text-2xl text-aegeanBlue focus:outline-none ${studyNotTested ? 'opacity-50 cursor-not-allowed' : ''}`}
-          >
-            {star <= studyRating ? "★" : "☆"}
-          </button>
-        ))}
-      </div>
-      <span className="ml-4 text-sm text-aegeanBlue/60">
-        {studyNotTested ? "Not tested" : studyRating > 0 ? `${studyRating}/5` : "Not rated"}
-      </span>
-    </div>
-  </div>
-  
-  {/* Agora Rating */}
-  <div className="mb-6">
-    <div className="flex justify-between items-center mb-2">
-      <label className="text-sm font-medium text-aegeanBlue/70">
-        Agora
-      </label>
-      
-      <div className="flex items-center">
-        <input
-          type="checkbox"
-          id="agora-not-tested"
-          checked={agoraNotTested}
-          onChange={(e) => {
-            setAgoraNotTested(e.target.checked);
-            if (e.target.checked) setAgoraRating(0);
-          }}
-          className="mr-1"
-        />
-        <label htmlFor="agora-not-tested" className="text-xs text-aegeanBlue/60 whitespace-nowrap">
-          I didn't test this
-        </label>
-      </div>
-    </div>
-    
-    <div className="flex items-center">
-      <div className="flex">
-        {[1, 2, 3, 4, 5].map((star) => (
-          <button
-            key={`agora-${star}`}
-            type="button"
-            onClick={() => {
-              setAgoraRating(star);
-              setAgoraNotTested(false);
-            }}
-            disabled={agoraNotTested}
-            className={`text-2xl text-aegeanBlue focus:outline-none ${agoraNotTested ? 'opacity-50 cursor-not-allowed' : ''}`}
-          >
-            {star <= agoraRating ? "★" : "☆"}
-          </button>
-        ))}
-      </div>
-      <span className="ml-4 text-sm text-aegeanBlue/60">
-        {agoraNotTested ? "Not tested" : agoraRating > 0 ? `${agoraRating}/5` : "Not rated"}
-      </span>
-    </div>
-  </div>
-</div>
+                  
+                  {/* Improved Rating Section */}
+                  <div className="space-y-4 my-6">
+                    <h4 className="font-medium text-aegeanBlue">Rate your experience with each section:</h4>
+                    
+                    {/* Rating Item Component - Improved Layout */}
+                    {[
+                      { name: 'Journal', rating: journalRating, setRating: setJournalRating, notTested: journalNotTested, setNotTested: setJournalNotTested },
+                      { name: 'Study', rating: studyRating, setRating: setStudyRating, notTested: studyNotTested, setNotTested: setStudyNotTested },
+                      { name: 'Agora', rating: agoraRating, setRating: setAgoraRating, notTested: agoraNotTested, setNotTested: setAgoraNotTested }
+                    ].map((section) => (
+                      <div key={section.name} className="grid grid-cols-12 gap-2 items-center">
+                        {/* Section Name - Fixed Width */}
+                        <div className="col-span-2 sm:col-span-2">
+                          <label className="text-sm font-medium text-aegeanBlue/70 whitespace-nowrap">
+                            {section.name}
+                          </label>
+                        </div>
+                        
+                        {/* Stars - Takes Available Space */}
+                        <div className="col-span-5 sm:col-span-6 flex items-center">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <button
+                              key={`${section.name.toLowerCase()}-${star}`}
+                              type="button"
+                              onClick={() => {
+                                section.setRating(star);
+                                section.setNotTested(false);
+                              }}
+                              disabled={section.notTested}
+                              className={`text-xl sm:text-2xl text-aegeanBlue focus:outline-none ${section.notTested ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            >
+                              {star <= section.rating ? "★" : "☆"}
+                            </button>
+                          ))}
+                          <span className="ml-2 text-xs sm:text-sm text-aegeanBlue/60 whitespace-nowrap">
+                            {section.notTested ? "Not tested" : section.rating > 0 ? `${section.rating}/5` : "Not rated"}
+                          </span>
+                        </div>
+                        
+                        {/* "I didn't test this" Checkbox - Fixed Position */}
+                        <div className="col-span-5 sm:col-span-4 flex items-center justify-end">
+                          <input
+                            type="checkbox"
+                            id={`${section.name.toLowerCase()}-not-tested`}
+                            checked={section.notTested}
+                            onChange={(e) => {
+                              section.setNotTested(e.target.checked);
+                              if (e.target.checked) section.setRating(0);
+                            }}
+                            className="mr-2"
+                          />
+                          <label htmlFor={`${section.name.toLowerCase()}-not-tested`} className="text-xs text-aegeanBlue/60 whitespace-nowrap">
+                            I didn't test this
+                          </label>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                   
                   <div className="mb-6">
                     <label className="block text-sm font-medium text-aegeanBlue/70 mb-1">
