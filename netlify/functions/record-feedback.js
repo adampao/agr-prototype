@@ -81,6 +81,34 @@ exports.handler = async function(event, context) {
         // Get the first sheet
         const sheet = doc.sheetsByIndex[0];
         
+        // Format feature usage for better readability
+        let formattedFeatures = 'None';
+        if (data.features && Object.keys(data.features).length > 0) {
+          formattedFeatures = Object.entries(data.features)
+            .map(([feature, count]) => `${feature}: ${count} times`)
+            .join('; ');
+        } else if (data.usageSummary && data.usageSummary.featureUsage) {
+          // Use the pre-formatted feature usage if available
+          formattedFeatures = data.usageSummary.featureUsage;
+        }
+        
+        // Format page views for better readability
+        let formattedPageViews = 'None';
+        if (data.pageViews && Object.keys(data.pageViews).length > 0) {
+          formattedPageViews = Object.entries(data.pageViews)
+            .map(([page, count]) => `${page}: ${count} views`)
+            .join('; ');
+        } else if (data.usageSummary && data.usageSummary.pageViews) {
+          // Use the pre-formatted page views if available
+          formattedPageViews = data.usageSummary.pageViews;
+        }
+        
+        // Format ratings for consistency
+        const formatRating = (ratingObj) => {
+          if (!ratingObj) return 'Not rated';
+          return ratingObj.notTested ? 'Not tested' : `${ratingObj.rating || 0}/5`;
+        };
+        
         // Add a row to the sheet
         await sheet.addRow({
           Timestamp: data.timestamp,
@@ -88,15 +116,17 @@ exports.handler = async function(event, context) {
           Feedback: data.feedback,
           Email: data.email || 'Not provided',
           SessionId: data.sessionId || 'Unknown',
-          FeaturesUsed: JSON.stringify(data.features || {}),
-          PageViews: JSON.stringify(data.pageViews || {}),
+          FeaturesUsed: formattedFeatures,
+          PageViews: formattedPageViews,
           Source: data.source || 'popup', // Track where feedback came from
           ContactOk: data.contactOk ? 'Yes' : 'No',
-          JournalRating: data.pageRatings?.journal?.notTested ? "Not Tested" : (data.pageRatings?.journal?.rating || "0"),
-          StudyRating: data.pageRatings?.study?.notTested ? "Not Tested" : (data.pageRatings?.study?.rating || "0"),
-          AgoraRating: data.pageRatings?.agora?.notTested ? "Not Tested" : (data.pageRatings?.agora?.rating || "0")
+          JournalRating: formatRating(data.pageRatings?.journal),
+          StudyRating: formatRating(data.pageRatings?.study),
+          AgoraRating: formatRating(data.pageRatings?.agora),
+          VisitCount: data.usageSummary?.visitCount || 1,
+          FirstVisit: data.usageSummary?.firstVisit || 'Unknown',
+          LastVisit: data.usageSummary?.lastVisit || 'Unknown'
         });
-        
         
         googleSheetsSuccess = true;
       } catch (sheetError) {
@@ -152,20 +182,59 @@ async function storeAnalyticsInSheet(analyticsData) {
     // If second sheet doesn't exist, create it
     sheet = await doc.addSheet({ 
       title: 'Analytics Data',
-      headerValues: ['Timestamp', 'SessionId', 'Type', 'EventData', 'FullAnalytics'] 
+      headerValues: ['Timestamp', 'SessionId', 'Type', 'Feature', 'FeatureDetails', 'PageView', 'EventData'] 
     });
   }
   
-  // Add a row to the sheet
+  const event = analyticsData.event || analyticsData.data || {};
+  const timestamp = analyticsData.timestamp || new Date().toISOString();
+  const sessionId = analyticsData.sessionId || event.sessionId || 'Unknown';
+  
+  // Format feature usage data if this is a feature event
+  let feature = '';
+  let featureDetails = '';
+  let formattedEventData = '';
+  
+  if (event.type === 'featureUse') {
+    feature = event.feature || '';
+    
+    // If it's an improved analytics format
+    if (event.featureFormatted) {
+      featureDetails = event.featureFormatted;
+      formattedEventData = event.allFeaturesUsed || '';
+    } else {
+      // Handle the older format
+      featureDetails = `${feature} (used)`;
+      
+      // Check if we have the analyticsData object with features
+      if (analyticsData.analyticsData && analyticsData.analyticsData.features) {
+        formattedEventData = Object.entries(analyticsData.analyticsData.features)
+          .map(([name, count]) => `${name}: ${count}`)
+          .join('; ');
+      } else {
+        formattedEventData = JSON.stringify(event.details || {});
+      }
+    }
+  } else {
+    // For non-feature events, just stringify the data
+    formattedEventData = JSON.stringify(event);
+  }
+  
+  let pageView = '';
+  if (event.type === 'pageView') {
+    pageView = event.page || '';
+  }
+  
+  // Add a row to the sheet with improved formatting
   await sheet.addRow({
-    Timestamp: analyticsData.timestamp,
-    SessionId: analyticsData.sessionId || 'Unknown',
-    Type: analyticsData.event?.type || 'Unknown',
-    EventData: JSON.stringify(analyticsData.event || {}),
-    FullAnalytics: JSON.stringify(analyticsData.analyticsData || {})
+    Timestamp: timestamp,
+    SessionId: sessionId,
+    Type: event.type || 'Unknown',
+    Feature: feature,
+    FeatureDetails: featureDetails,
+    PageView: pageView,
+    EventData: formattedEventData
   });
-  
-  
 }
 
 // Function to send feedback via email
@@ -185,6 +254,34 @@ async function sendEmailNotification(feedbackData) {
     const contactOk = feedbackData.contactOk ? 'Yes' : 'No';
     const likedFeature = feedbackData.likedFeature || 'Not specified';
     
+    // Format feature usage for better readability
+    let formattedFeatures = 'None';
+    if (feedbackData.features && Object.keys(feedbackData.features).length > 0) {
+      formattedFeatures = Object.entries(feedbackData.features)
+        .map(([feature, count]) => `${feature}: ${count} times`)
+        .join('\n');
+    } else if (feedbackData.usageSummary && feedbackData.usageSummary.featureUsage) {
+      // Use the pre-formatted feature usage if available
+      formattedFeatures = feedbackData.usageSummary.featureUsage.replace(/;/g, '\n');
+    }
+    
+    // Format page views for better readability
+    let formattedPageViews = 'None';
+    if (feedbackData.pageViews && Object.keys(feedbackData.pageViews).length > 0) {
+      formattedPageViews = Object.entries(feedbackData.pageViews)
+        .map(([page, count]) => `${page}: ${count} views`)
+        .join('\n');
+    } else if (feedbackData.usageSummary && feedbackData.usageSummary.pageViews) {
+      // Use the pre-formatted page views if available
+      formattedPageViews = feedbackData.usageSummary.pageViews.replace(/;/g, '\n');
+    }
+    
+    // Format ratings for email
+    const formatRating = (ratingObj) => {
+      if (!ratingObj) return 'Not rated';
+      return ratingObj.notTested ? "Not Tested" : (ratingObj.rating || "0") + "/5";
+    };
+    
     const msg = {
       to: process.env.NOTIFICATION_EMAIL,
       from: 'feedback@agr-platform.com', // Use your verified sender
@@ -199,17 +296,19 @@ ${source === 'footer' ? `Liked Feature: ${likedFeature}` : ''}
 Contact OK: ${contactOk}
 Timestamp: ${feedbackData.timestamp}
 SessionId: ${feedbackData.sessionId || 'Unknown'}
+Visit Count: ${feedbackData.usageSummary?.visitCount || 1}
+First Visit: ${feedbackData.usageSummary?.firstVisit || 'Unknown'}
 
 Page Ratings:
-Journal: ${feedbackData.pageRatings?.journal?.notTested ? "Not Tested" : (feedbackData.pageRatings?.journal?.rating || "0") + "/5"}
-Study: ${feedbackData.pageRatings?.study?.notTested ? "Not Tested" : (feedbackData.pageRatings?.study?.rating || "0") + "/5"}
-Agora: ${feedbackData.pageRatings?.agora?.notTested ? "Not Tested" : (feedbackData.pageRatings?.agora?.rating || "0") + "/5"}
+Journal: ${formatRating(feedbackData.pageRatings?.journal)}
+Study: ${formatRating(feedbackData.pageRatings?.study)}
+Agora: ${formatRating(feedbackData.pageRatings?.agora)}
 
 Features Used: 
-${JSON.stringify(feedbackData.features || {}, null, 2)}
+${formattedFeatures}
 
 Page Views:
-${JSON.stringify(feedbackData.pageViews || {}, null, 2)}
+${formattedPageViews}
       `,
       html: `
 <h2>New AGR Platform Feedback (${source})</h2>
@@ -220,17 +319,19 @@ ${source === 'footer' ? `<p><strong>Liked Feature:</strong> ${likedFeature}</p>`
 <p><strong>Contact OK:</strong> ${contactOk}</p>
 <p><strong>Timestamp:</strong> ${feedbackData.timestamp}</p>
 <p><strong>Session ID:</strong> ${feedbackData.sessionId || 'Unknown'}</p>
+<p><strong>Visit Count:</strong> ${feedbackData.usageSummary?.visitCount || 1}</p>
+<p><strong>First Visit:</strong> ${feedbackData.usageSummary?.firstVisit || 'Unknown'}</p>
 
 <h3>Page Ratings:</h3>
-<p><strong>Journal:</strong> ${feedbackData.pageRatings?.journal?.notTested ? "Not Tested" : (feedbackData.pageRatings?.journal?.rating || "0") + "/5"}</p>
-<p><strong>Study:</strong> ${feedbackData.pageRatings?.study?.notTested ? "Not Tested" : (feedbackData.pageRatings?.study?.rating || "0") + "/5"}</p>
-<p><strong>Agora:</strong> ${feedbackData.pageRatings?.agora?.notTested ? "Not Tested" : (feedbackData.pageRatings?.agora?.rating || "0") + "/5"}</p>
+<p><strong>Journal:</strong> ${formatRating(feedbackData.pageRatings?.journal)}</p>
+<p><strong>Study:</strong> ${formatRating(feedbackData.pageRatings?.study)}</p>
+<p><strong>Agora:</strong> ${formatRating(feedbackData.pageRatings?.agora)}</p>
 
 <h3>Features Used:</h3>
-<pre>${JSON.stringify(feedbackData.features || {}, null, 2)}</pre>
+<pre>${formattedFeatures}</pre>
 
 <h3>Page Views:</h3>
-<pre>${JSON.stringify(feedbackData.pageViews || {}, null, 2)}</pre>
+<pre>${formattedPageViews}</pre>
       `
     };
     
