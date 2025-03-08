@@ -12,16 +12,8 @@ import heraclitus from './philosophers/heraclitus';
 import aristotle from './philosophers/aristotle';
 import plato from './philosophers/plato';
 import pythagoras from './philosophers/pythagoras';
-// Other philosophers will be added here as they're created
 
-/* 
-// Create a lookup object by ID for easy access
-const personas = {
-  // Philosophers
-  socrates, xenophon, heraclitus, aristotle, plato, pythagoras
-  
-};
-*/
+
 
 // Create a lookup object by ID for easy access with sorted keys
 const personasRaw = {
