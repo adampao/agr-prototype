@@ -109,6 +109,10 @@ exports.handler = async function(event, context) {
           return ratingObj.notTested ? 'Not tested' : `${ratingObj.rating || 0}/5`;
         };
         
+        // Determine contact permission based on email presence
+        // If user provided email, assume they're okay with being contacted
+        const contactOk = data.email && data.email.trim() !== '' ? 'Yes' : 'No';
+        
         // Add a row to the sheet
         await sheet.addRow({
           Timestamp: data.timestamp,
@@ -119,7 +123,7 @@ exports.handler = async function(event, context) {
           FeaturesUsed: formattedFeatures,
           PageViews: formattedPageViews,
           Source: data.source || 'popup', // Track where feedback came from
-          ContactOk: data.contactOk ? 'Yes' : 'No',
+          ContactOk: contactOk, // Updated contact permission logic
           JournalRating: formatRating(data.pageRatings?.journal),
           StudyRating: formatRating(data.pageRatings?.study),
           AgoraRating: formatRating(data.pageRatings?.agora),
@@ -251,7 +255,10 @@ async function sendEmailNotification(feedbackData) {
     
     // Determine the source of the feedback
     const source = feedbackData.source || 'popup';
-    const contactOk = feedbackData.contactOk ? 'Yes' : 'No';
+    
+    // Determine contact permission based on email presence
+    const contactOk = feedbackData.email && feedbackData.email.trim() !== '' ? 'Yes' : 'No';
+    
     const likedFeature = feedbackData.likedFeature || 'Not specified';
     
     // Format feature usage for better readability
