@@ -305,13 +305,13 @@ const FeedbackCard = ({ openFromFooter = false }) => {
               {star <= journalRating ? "★" : "☆"}
             </button>
           ))}
-          <span className="ml-3 text-sm text-aegeanBlue/60 min-w-[70px]">
+          <span className="ml-5 text-sm text-aegeanBlue/60 min-w-[80px]">
             {journalNotTested ? "Not tested" : journalRating > 0 ? `${journalRating}/5` : "Not rated"}
           </span>
         </div>
       </div>
       
-      <div className="flex items-center ml-1">
+      <div className="flex items-center ml-6">
         <input
           type="checkbox"
           id="journal-not-tested"
