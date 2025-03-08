@@ -278,19 +278,37 @@ const FeedbackCard = ({ openFromFooter = false }) => {
                     />
                   </div>
 
-                 {/* Page Ratings */}
+                 {/* Page Ratings - Responsive Design */}
 <div className="space-y-4 my-6">
   <h4 className="font-medium text-aegeanBlue">Rate your experience with each section:</h4>
   
   {/* Journal Rating */}
   <div className="mb-5">
-    <div className="flex items-center justify-between">
-      <div className="flex items-center">
-        <label className="text-sm font-medium text-aegeanBlue/70 w-16 mr-4">
+    <div className="flex flex-col sm:flex-row sm:items-center">
+      <div className="flex justify-between items-center w-full">
+        <label className="text-sm font-medium text-aegeanBlue/70 mb-1 sm:mb-0 sm:w-16 sm:mr-4">
           Journal
         </label>
         
-        <div className="flex items-center">
+        <div className="flex items-center mb-1 sm:mb-0">
+          <input
+            type="checkbox"
+            id="journal-not-tested"
+            checked={journalNotTested}
+            onChange={(e) => {
+              setJournalNotTested(e.target.checked);
+              if (e.target.checked) setJournalRating(0);
+            }}
+            className="mr-2"
+          />
+          <label htmlFor="journal-not-tested" className="text-xs text-aegeanBlue/60">
+            I didn't test this
+          </label>
+        </div>
+      </div>
+      
+      <div className="flex items-center mt-1 sm:mt-0">
+        <div className="flex">
           {[1, 2, 3, 4, 5].map((star) => (
             <button
               key={`journal-${star}`}
@@ -305,39 +323,41 @@ const FeedbackCard = ({ openFromFooter = false }) => {
               {star <= journalRating ? "★" : "☆"}
             </button>
           ))}
-          <span className="ml-5 text-sm text-aegeanBlue/60 min-w-[80px]">
-            {journalNotTested ? "Not tested" : journalRating > 0 ? `${journalRating}/5` : "Not rated"}
-          </span>
         </div>
-      </div>
-      
-      <div className="flex items-center ml-6">
-        <input
-          type="checkbox"
-          id="journal-not-tested"
-          checked={journalNotTested}
-          onChange={(e) => {
-            setJournalNotTested(e.target.checked);
-            if (e.target.checked) setJournalRating(0);
-          }}
-          className="mr-2"
-        />
-        <label htmlFor="journal-not-tested" className="text-xs text-aegeanBlue/60">
-          I didn't test this
-        </label>
+        <span className="ml-4 text-sm text-aegeanBlue/60 min-w-[80px]">
+          {journalNotTested ? "Not tested" : journalRating > 0 ? `${journalRating}/5` : "Not rated"}
+        </span>
       </div>
     </div>
   </div>
   
   {/* Study Rating - Same pattern */}
   <div className="mb-5">
-    <div className="flex items-center justify-between">
-      <div className="flex items-center">
-        <label className="text-sm font-medium text-aegeanBlue/70 w-16 mr-4">
+    <div className="flex flex-col sm:flex-row sm:items-center">
+      <div className="flex justify-between items-center w-full">
+        <label className="text-sm font-medium text-aegeanBlue/70 mb-1 sm:mb-0 sm:w-16 sm:mr-4">
           Study
         </label>
         
-        <div className="flex items-center">
+        <div className="flex items-center mb-1 sm:mb-0">
+          <input
+            type="checkbox"
+            id="study-not-tested"
+            checked={studyNotTested}
+            onChange={(e) => {
+              setStudyNotTested(e.target.checked);
+              if (e.target.checked) setStudyRating(0);
+            }}
+            className="mr-2"
+          />
+          <label htmlFor="study-not-tested" className="text-xs text-aegeanBlue/60">
+            I didn't test this
+          </label>
+        </div>
+      </div>
+      
+      <div className="flex items-center mt-1 sm:mt-0">
+        <div className="flex">
           {[1, 2, 3, 4, 5].map((star) => (
             <button
               key={`study-${star}`}
@@ -352,39 +372,41 @@ const FeedbackCard = ({ openFromFooter = false }) => {
               {star <= studyRating ? "★" : "☆"}
             </button>
           ))}
-          <span className="ml-3 text-sm text-aegeanBlue/60 min-w-[70px]">
-            {studyNotTested ? "Not tested" : studyRating > 0 ? `${studyRating}/5` : "Not rated"}
-          </span>
         </div>
-      </div>
-      
-      <div className="flex items-center ml-1">
-        <input
-          type="checkbox"
-          id="study-not-tested"
-          checked={studyNotTested}
-          onChange={(e) => {
-            setStudyNotTested(e.target.checked);
-            if (e.target.checked) setStudyRating(0);
-          }}
-          className="mr-2"
-        />
-        <label htmlFor="study-not-tested" className="text-xs text-aegeanBlue/60">
-          I didn't test this
-        </label>
+        <span className="ml-4 text-sm text-aegeanBlue/60 min-w-[80px]">
+          {studyNotTested ? "Not tested" : studyRating > 0 ? `${studyRating}/5` : "Not rated"}
+        </span>
       </div>
     </div>
   </div>
   
   {/* Agora Rating - Same pattern */}
   <div className="mb-5">
-    <div className="flex items-center justify-between">
-      <div className="flex items-center">
-        <label className="text-sm font-medium text-aegeanBlue/70 w-16 mr-4">
+    <div className="flex flex-col sm:flex-row sm:items-center">
+      <div className="flex justify-between items-center w-full">
+        <label className="text-sm font-medium text-aegeanBlue/70 mb-1 sm:mb-0 sm:w-16 sm:mr-4">
           Agora
         </label>
         
-        <div className="flex items-center">
+        <div className="flex items-center mb-1 sm:mb-0">
+          <input
+            type="checkbox"
+            id="agora-not-tested"
+            checked={agoraNotTested}
+            onChange={(e) => {
+              setAgoraNotTested(e.target.checked);
+              if (e.target.checked) setAgoraRating(0);
+            }}
+            className="mr-2"
+          />
+          <label htmlFor="agora-not-tested" className="text-xs text-aegeanBlue/60">
+            I didn't test this
+          </label>
+        </div>
+      </div>
+      
+      <div className="flex items-center mt-1 sm:mt-0">
+        <div className="flex">
           {[1, 2, 3, 4, 5].map((star) => (
             <button
               key={`agora-${star}`}
@@ -399,26 +421,10 @@ const FeedbackCard = ({ openFromFooter = false }) => {
               {star <= agoraRating ? "★" : "☆"}
             </button>
           ))}
-          <span className="ml-3 text-sm text-aegeanBlue/60 min-w-[70px]">
-            {agoraNotTested ? "Not tested" : agoraRating > 0 ? `${agoraRating}/5` : "Not rated"}
-          </span>
         </div>
-      </div>
-      
-      <div className="flex items-center ml-1">
-        <input
-          type="checkbox"
-          id="agora-not-tested"
-          checked={agoraNotTested}
-          onChange={(e) => {
-            setAgoraNotTested(e.target.checked);
-            if (e.target.checked) setAgoraRating(0);
-          }}
-          className="mr-2"
-        />
-        <label htmlFor="agora-not-tested" className="text-xs text-aegeanBlue/60">
-          I didn't test this
-        </label>
+        <span className="ml-4 text-sm text-aegeanBlue/60 min-w-[80px]">
+          {agoraNotTested ? "Not tested" : agoraRating > 0 ? `${agoraRating}/5` : "Not rated"}
+        </span>
       </div>
     </div>
   </div>
