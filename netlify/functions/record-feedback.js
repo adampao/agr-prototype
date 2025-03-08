@@ -113,6 +113,10 @@ exports.handler = async function(event, context) {
         // If user provided email, assume they're okay with being contacted
         const contactOk = data.email && data.email.trim() !== '' ? 'Yes' : 'No';
         
+        // Get device info
+        const deviceType = data.deviceType || 'unknown';
+        const screenSize = data.screenSize || 'unknown';
+        
         // Add a row to the sheet
         await sheet.addRow({
           Timestamp: data.timestamp,
@@ -129,7 +133,9 @@ exports.handler = async function(event, context) {
           AgoraRating: formatRating(data.pageRatings?.agora),
           VisitCount: data.usageSummary?.visitCount || 1,
           FirstVisit: data.usageSummary?.firstVisit || 'Unknown',
-          LastVisit: data.usageSummary?.lastVisit || 'Unknown'
+          LastVisit: data.usageSummary?.lastVisit || 'Unknown',
+          DeviceType: deviceType,
+          ScreenSize: screenSize
         });
         
         googleSheetsSuccess = true;
@@ -186,13 +192,14 @@ async function storeAnalyticsInSheet(analyticsData) {
     // If second sheet doesn't exist, create it
     sheet = await doc.addSheet({ 
       title: 'Analytics Data',
-      headerValues: ['Timestamp', 'SessionId', 'Type', 'Feature', 'FeatureDetails', 'PageView', 'EventData'] 
+      headerValues: ['Timestamp', 'SessionId', 'Type', 'Feature', 'FeatureDetails', 'PageView', 'DeviceType', 'EventData'] 
     });
   }
   
   const event = analyticsData.event || analyticsData.data || {};
   const timestamp = analyticsData.timestamp || new Date().toISOString();
   const sessionId = analyticsData.sessionId || event.sessionId || 'Unknown';
+  const deviceType = event.deviceType || 'unknown';
   
   // Format feature usage data if this is a feature event
   let feature = '';
@@ -237,6 +244,7 @@ async function storeAnalyticsInSheet(analyticsData) {
     Feature: feature,
     FeatureDetails: featureDetails,
     PageView: pageView,
+    DeviceType: deviceType, // Added device type
     EventData: formattedEventData
   });
 }
@@ -260,6 +268,8 @@ async function sendEmailNotification(feedbackData) {
     const contactOk = feedbackData.email && feedbackData.email.trim() !== '' ? 'Yes' : 'No';
     
     const likedFeature = feedbackData.likedFeature || 'Not specified';
+    const deviceType = feedbackData.deviceType || 'unknown';
+    const screenSize = feedbackData.screenSize || 'unknown';
     
     // Format feature usage for better readability
     let formattedFeatures = 'None';
@@ -303,6 +313,8 @@ ${source === 'footer' ? `Liked Feature: ${likedFeature}` : ''}
 Contact OK: ${contactOk}
 Timestamp: ${feedbackData.timestamp}
 SessionId: ${feedbackData.sessionId || 'Unknown'}
+Device Type: ${deviceType}
+Screen Size: ${screenSize}
 Visit Count: ${feedbackData.usageSummary?.visitCount || 1}
 First Visit: ${feedbackData.usageSummary?.firstVisit || 'Unknown'}
 
@@ -326,6 +338,8 @@ ${source === 'footer' ? `<p><strong>Liked Feature:</strong> ${likedFeature}</p>`
 <p><strong>Contact OK:</strong> ${contactOk}</p>
 <p><strong>Timestamp:</strong> ${feedbackData.timestamp}</p>
 <p><strong>Session ID:</strong> ${feedbackData.sessionId || 'Unknown'}</p>
+<p><strong>Device Type:</strong> ${deviceType}</p>
+<p><strong>Screen Size:</strong> ${screenSize}</p>
 <p><strong>Visit Count:</strong> ${feedbackData.usageSummary?.visitCount || 1}</p>
 <p><strong>First Visit:</strong> ${feedbackData.usageSummary?.firstVisit || 'Unknown'}</p>
 

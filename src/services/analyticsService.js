@@ -8,6 +8,33 @@
  * - Can optionally send data to a backend
  */
 
+// Detect if user is on mobile or desktop
+const detectDeviceType = () => {
+  const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+  
+  // Check for common mobile patterns in the user agent
+  const mobileRegex = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i;
+  
+  // Get screen size (another way to detect mobile)
+  const smallScreen = window.innerWidth < 768;
+  
+  // Check for touch capability
+  const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+  
+  // Get more detailed device info
+  const isMobileDevice = mobileRegex.test(userAgent);
+  const isTablet = /iPad|Android(?!.*Mobile)/i.test(userAgent) || (hasTouch && window.innerWidth >= 768 && window.innerWidth <= 1024);
+  
+  // Determine device category
+  if (isMobileDevice && !isTablet) {
+    return 'mobile';
+  } else if (isTablet) {
+    return 'tablet';
+  } else {
+    return 'desktop';
+  }
+};
+
 // Generate a random session ID that persists for this browser session
 const generateSessionId = () => {
   return Math.random().toString(36).substring(2, 15) + 
@@ -35,7 +62,10 @@ const initializeTrackingData = () => {
       features: {},
       featureHistory: [], // New array to store feature usage with timestamps
       feedbackGiven: false,
-      sessionIds: [getSessionId()]
+      sessionIds: [getSessionId()],
+      deviceType: detectDeviceType(), // Added device type detection
+      userAgent: navigator.userAgent, // Optional: store full user agent
+      screenSize: `${window.innerWidth}x${window.innerHeight}` // Optional: store screen dimensions
     };
     localStorage.setItem('agr_analytics', JSON.stringify(initialData));
     return initialData;
@@ -50,6 +80,12 @@ const initializeTrackingData = () => {
     data.lastVisit = new Date().toISOString();
     data.visitCount += 1;
     data.sessionIds.push(sessionId);
+    
+    // Update device info on each new session
+    data.deviceType = detectDeviceType();
+    data.userAgent = navigator.userAgent;
+    data.screenSize = `${window.innerWidth}x${window.innerHeight}`;
+    
     localStorage.setItem('agr_analytics', JSON.stringify(data));
   }
   
@@ -79,13 +115,18 @@ export const trackPageView = (pageName) => {
   localStorage.setItem('agr_analytics', JSON.stringify(data));
   
   // Send this data to the backend
-  sendAnalyticsToBackend({ type: 'pageView', page: pageName });
+  sendAnalyticsToBackend({ 
+    type: 'pageView', 
+    page: pageName,
+    deviceType: data.deviceType || detectDeviceType()
+  });
 };
 
 // Record a feature use
 export const trackFeatureUse = (featureName, additionalData = {}) => {
   const data = JSON.parse(localStorage.getItem('agr_analytics') || '{}');
   const timestamp = new Date().toISOString();
+  const deviceType = data.deviceType || detectDeviceType();
   
   // Ensure the features object exists
   if (!data.features) {
@@ -109,6 +150,7 @@ export const trackFeatureUse = (featureName, additionalData = {}) => {
     feature: featureName,
     timestamp: timestamp,
     sessionId: getSessionId(),
+    deviceType: deviceType,
     ...additionalData
   });
   
@@ -119,6 +161,7 @@ export const trackFeatureUse = (featureName, additionalData = {}) => {
     type: 'featureUse', 
     feature: featureName,
     timestamp: timestamp,
+    deviceType: deviceType,
     details: additionalData
   });
 };
@@ -136,8 +179,9 @@ export const getFeatureUsageSummary = () => {
     featureName: entry.feature,
     usageTime: entry.timestamp,
     sessionId: entry.sessionId,
+    deviceType: entry.deviceType || 'unknown',
     additionalDetails: Object.keys(entry)
-      .filter(key => !['feature', 'timestamp', 'sessionId'].includes(key))
+      .filter(key => !['feature', 'timestamp', 'sessionId', 'deviceType'].includes(key))
       .reduce((obj, key) => {
         obj[key] = entry[key];
         return obj;
@@ -149,11 +193,13 @@ export const getFeatureUsageSummary = () => {
 export const recordFeedback = (feedbackData) => {
   const data = JSON.parse(localStorage.getItem('agr_analytics') || '{}');
   const timestamp = new Date().toISOString();
+  const deviceType = data.deviceType || detectDeviceType();
   
   data.feedbackGiven = true;
   data.feedback = {
     ...feedbackData,
-    timestamp: timestamp
+    timestamp: timestamp,
+    deviceType: deviceType
   };
   
   // Format feature usage for better readability in spreadsheets
@@ -167,6 +213,8 @@ export const recordFeedback = (feedbackData) => {
   // Send feedback to backend with improved feature data format
   return sendFeedbackToBackend({
     ...feedbackData,
+    deviceType: deviceType,
+    screenSize: data.screenSize || `${window.innerWidth}x${window.innerHeight}`,
     featureUsage: {
       summary: featuresList,
       details: formattedFeatures.slice(-10) // Send the 10 most recent feature usages
@@ -191,6 +239,11 @@ const sendAnalyticsToBackend = async (data) => {
   // This sends analytics data to the backend via the same endpoint as feedback
   try {
     const analyticsData = getAnalyticsData();
+    
+    // Ensure device type is included
+    if (!data.deviceType) {
+      data.deviceType = analyticsData.deviceType || detectDeviceType();
+    }
     
     // Format the feature data for better readability in Google Sheets
     let formattedData = {
@@ -252,6 +305,8 @@ const sendFeedbackToBackend = async (feedbackData) => {
         ...feedbackData,
         sessionId: getSessionId(),
         timestamp: new Date().toISOString(),
+        deviceType: analyticsData.deviceType || detectDeviceType(),
+        screenSize: analyticsData.screenSize || `${window.innerWidth}x${window.innerHeight}`,
         usageSummary: {
           visitCount: analyticsData.visitCount || 1,
           firstVisit: analyticsData.firstVisit,
