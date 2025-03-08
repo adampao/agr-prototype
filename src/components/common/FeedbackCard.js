@@ -286,7 +286,7 @@ const FeedbackCard = ({ openFromFooter = false }) => {
   <div className="mb-5">
     <div className="flex items-center justify-between">
       <div className="flex items-center">
-        <label className="text-sm font-medium text-aegeanBlue/70 w-20 mr-2">
+        <label className="text-sm font-medium text-aegeanBlue/70 w-16 mr-4">
           Journal
         </label>
         
@@ -305,13 +305,13 @@ const FeedbackCard = ({ openFromFooter = false }) => {
               {star <= journalRating ? "★" : "☆"}
             </button>
           ))}
-          <span className="ml-4 text-sm text-aegeanBlue/60 min-w-[80px]">
+          <span className="ml-3 text-sm text-aegeanBlue/60 min-w-[70px]">
             {journalNotTested ? "Not tested" : journalRating > 0 ? `${journalRating}/5` : "Not rated"}
           </span>
         </div>
       </div>
       
-      <div className="flex items-center ml-4">
+      <div className="flex items-center ml-1">
         <input
           type="checkbox"
           id="journal-not-tested"
@@ -333,7 +333,7 @@ const FeedbackCard = ({ openFromFooter = false }) => {
   <div className="mb-5">
     <div className="flex items-center justify-between">
       <div className="flex items-center">
-        <label className="text-sm font-medium text-aegeanBlue/70 w-20 mr-2">
+        <label className="text-sm font-medium text-aegeanBlue/70 w-16 mr-4">
           Study
         </label>
         
@@ -352,13 +352,13 @@ const FeedbackCard = ({ openFromFooter = false }) => {
               {star <= studyRating ? "★" : "☆"}
             </button>
           ))}
-          <span className="ml-4 text-sm text-aegeanBlue/60 min-w-[80px]">
+          <span className="ml-3 text-sm text-aegeanBlue/60 min-w-[70px]">
             {studyNotTested ? "Not tested" : studyRating > 0 ? `${studyRating}/5` : "Not rated"}
           </span>
         </div>
       </div>
       
-      <div className="flex items-center ml-4">
+      <div className="flex items-center ml-1">
         <input
           type="checkbox"
           id="study-not-tested"
@@ -380,7 +380,7 @@ const FeedbackCard = ({ openFromFooter = false }) => {
   <div className="mb-5">
     <div className="flex items-center justify-between">
       <div className="flex items-center">
-        <label className="text-sm font-medium text-aegeanBlue/70 w-20 mr-2">
+        <label className="text-sm font-medium text-aegeanBlue/70 w-16 mr-4">
           Agora
         </label>
         
@@ -399,13 +399,13 @@ const FeedbackCard = ({ openFromFooter = false }) => {
               {star <= agoraRating ? "★" : "☆"}
             </button>
           ))}
-          <span className="ml-4 text-sm text-aegeanBlue/60 min-w-[80px]">
+          <span className="ml-3 text-sm text-aegeanBlue/60 min-w-[70px]">
             {agoraNotTested ? "Not tested" : agoraRating > 0 ? `${agoraRating}/5` : "Not rated"}
           </span>
         </div>
       </div>
       
-      <div className="flex items-center ml-4">
+      <div className="flex items-center ml-1">
         <input
           type="checkbox"
           id="agora-not-tested"
