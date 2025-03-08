@@ -91,10 +91,13 @@ exports.handler = async function(event, context) {
           FeaturesUsed: JSON.stringify(data.features || {}),
           PageViews: JSON.stringify(data.pageViews || {}),
           Source: data.source || 'popup', // Track where feedback came from
-          ContactOk: data.contactOk ? 'Yes' : 'No'
+          ContactOk: data.contactOk ? 'Yes' : 'No',
+          JournalRating: data.pageRatings?.journal?.notTested ? "Not Tested" : (data.pageRatings?.journal?.rating || "0"),
+          StudyRating: data.pageRatings?.study?.notTested ? "Not Tested" : (data.pageRatings?.study?.rating || "0"),
+          AgoraRating: data.pageRatings?.agora?.notTested ? "Not Tested" : (data.pageRatings?.agora?.rating || "0")
         });
         
-        console.log('Feedback saved to Google Sheets successfully!');
+        
         googleSheetsSuccess = true;
       } catch (sheetError) {
         console.error('Error saving to Google Sheets:', sheetError);
@@ -162,7 +165,7 @@ async function storeAnalyticsInSheet(analyticsData) {
     FullAnalytics: JSON.stringify(analyticsData.analyticsData || {})
   });
   
-  console.log('Analytics saved to Google Sheets successfully!');
+  
 }
 
 // Function to send feedback via email
@@ -197,6 +200,11 @@ Contact OK: ${contactOk}
 Timestamp: ${feedbackData.timestamp}
 SessionId: ${feedbackData.sessionId || 'Unknown'}
 
+Page Ratings:
+Journal: ${feedbackData.pageRatings?.journal?.notTested ? "Not Tested" : (feedbackData.pageRatings?.journal?.rating || "0") + "/5"}
+Study: ${feedbackData.pageRatings?.study?.notTested ? "Not Tested" : (feedbackData.pageRatings?.study?.rating || "0") + "/5"}
+Agora: ${feedbackData.pageRatings?.agora?.notTested ? "Not Tested" : (feedbackData.pageRatings?.agora?.rating || "0") + "/5"}
+
 Features Used: 
 ${JSON.stringify(feedbackData.features || {}, null, 2)}
 
@@ -213,6 +221,11 @@ ${source === 'footer' ? `<p><strong>Liked Feature:</strong> ${likedFeature}</p>`
 <p><strong>Timestamp:</strong> ${feedbackData.timestamp}</p>
 <p><strong>Session ID:</strong> ${feedbackData.sessionId || 'Unknown'}</p>
 
+<h3>Page Ratings:</h3>
+<p><strong>Journal:</strong> ${feedbackData.pageRatings?.journal?.notTested ? "Not Tested" : (feedbackData.pageRatings?.journal?.rating || "0") + "/5"}</p>
+<p><strong>Study:</strong> ${feedbackData.pageRatings?.study?.notTested ? "Not Tested" : (feedbackData.pageRatings?.study?.rating || "0") + "/5"}</p>
+<p><strong>Agora:</strong> ${feedbackData.pageRatings?.agora?.notTested ? "Not Tested" : (feedbackData.pageRatings?.agora?.rating || "0") + "/5"}</p>
+
 <h3>Features Used:</h3>
 <pre>${JSON.stringify(feedbackData.features || {}, null, 2)}</pre>
 
@@ -222,7 +235,7 @@ ${source === 'footer' ? `<p><strong>Liked Feature:</strong> ${likedFeature}</p>`
     };
     
     await sgMail.send(msg);
-    console.log('Email notification sent successfully');
+    
   } catch (emailError) {
     console.error('Error sending email notification:', emailError);
   }

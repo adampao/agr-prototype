@@ -89,8 +89,7 @@ const Footer = () => {
       {/* About Modal */}
       <AboutModal isOpen={aboutModalOpen} onClose={closeAboutModal} />
       
-      {/* Include the FeedbackCard component to ensure it gets rendered */}
-      <FeedbackCard />
+     
       
       {/* Waitlist Modal */}
       <dialog id="waitlist-modal" className="modal p-0 rounded-lg shadow-elegant max-w-md w-full bg-white">
