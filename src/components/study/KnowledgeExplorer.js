@@ -1,153 +1,172 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Card from '../common/Card';
 import Button from '../common/Button';
+import ReactMarkdown from 'react-markdown';
 
-const knowledgeDomains = [
-  { 
-    id: 'philosophy', 
-    name: 'Philosophy', 
-    icon: '🧠',
-    topics: [
-      { id: 'ethics', name: 'Ethics & Morality' },
-      { id: 'metaphysics', name: 'Metaphysics & Reality' },
-      { id: 'epistemology', name: 'Epistemology & Knowledge' },
-      { id: 'logic', name: 'Logic & Reasoning' },
-      { id: 'aesthetics', name: 'Aesthetics & Beauty' },
-    ] 
-  },
-  { 
-    id: 'history', 
-    name: 'History', 
-    icon: '📜',
-    topics: [
-      { id: 'archaic', name: 'Archaic Period' },
-      { id: 'classical', name: 'Classical Period' },
-      { id: 'hellenistic', name: 'Hellenistic Period' },
-      { id: 'figures', name: 'Historical Figures' },
-      { id: 'events', name: 'Major Events' },
-    ] 
-  },
-  { 
-    id: 'mythology', 
-    name: 'Mythology', 
-    icon: '⚡',
-    topics: [
-      { id: 'gods', name: 'Olympian Gods' },
-      { id: 'heroes', name: 'Heroes & Legends' },
-      { id: 'creatures', name: 'Mythical Creatures' },
-      { id: 'stories', name: 'Myths & Stories' },
-      { id: 'symbols', name: 'Symbols & Meanings' },
-    ] 
-  },
-];
-
-// For the prototype, we'll include one sample article
-const sampleArticle = {
-  id: 'virtue-ethics',
-  title: 'Virtue Ethics in Ancient Greece',
-  domain: 'philosophy',
-  topic: 'ethics',
-  content: `
-# Virtue Ethics in Ancient Greece
-
-Virtue ethics is one of the oldest moral traditions in Western philosophy, with its roots deeply embedded in ancient Greek thought, particularly in the works of Aristotle, though it draws on the ideas of earlier thinkers like Socrates and Plato.
-
-## The Concept of Virtue (Aretē)
-
-The ancient Greek concept of 'aretē' (often translated as 'virtue' or 'excellence') refers to the qualities that enable something to perform its function well. For humans, aretē means the qualities that enable a person to live a good, flourishing life (eudaimonia).
-
-## Aristotle's Approach
-
-Aristotle developed the most comprehensive virtue ethics framework in his work "Nicomachean Ethics." His approach centers on:
-
-1. **The Golden Mean**: Virtues are a mean between two extremes (vices) - excess and deficiency. For example, courage is the mean between rashness (excess) and cowardice (deficiency).
-
-2. **Character Development**: Virtues are not innate but developed through practice and habit. We become virtuous by performing virtuous acts.
-
-3. **Practical Wisdom (Phronesis)**: The intellectual virtue that allows us to determine the right action in any situation.
-
-## Key Virtues in Ancient Greek Ethics
-
-- **Courage (Andreia)**: Facing fear appropriately
-- **Temperance (Sophrosyne)**: Moderation in desires and pleasures
-- **Justice (Dikaiosyne)**: Fair treatment and proportional equality
-- **Wisdom (Sophia)**: Understanding of universal truths
-- **Magnanimity (Megalopsychia)**: Appropriate pride and self-worth
-
-## Modern Relevance
-
-Virtue ethics offers an alternative to rule-based ethical systems by focusing on character development rather than specific actions or outcomes. Many modern philosophers and psychologists have renewed interest in virtue ethics as a foundation for personal development and ethical living.
-  `,
-  relatedTopics: ['virtue', 'aristotle', 'ethics', 'eudaimonia', 'character']
-};
+// In a real app, this would come from an API or a state management system
+import knowledgeBase from '../../data/knowledge-base.json';
 
 const KnowledgeExplorer = () => {
+  const [domains, setDomains] = useState([]);
   const [selectedDomain, setSelectedDomain] = useState(null);
   const [selectedTopic, setSelectedTopic] = useState(null);
   const [currentArticle, setCurrentArticle] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+  
+  useEffect(() => {
+    // Load domains from the knowledge base
+    setDomains(knowledgeBase.domains);
+  }, []);
   
   const handleDomainSelect = (domain) => {
     setSelectedDomain(domain);
     setSelectedTopic(null);
     setCurrentArticle(null);
+    setSearchResults([]);
+    setIsSearching(false);
   };
   
   const handleTopicSelect = (topic) => {
     setSelectedTopic(topic);
-    // In a real app, we would fetch the appropriate content
-    // For the prototype, we'll just show our sample article
-    setCurrentArticle(sampleArticle);
+    setCurrentArticle(null);
+    
+    // Find articles for this topic
+    const topicArticles = knowledgeBase.articles.filter(
+      article => article.topicId === topic.id && article.domainId === selectedDomain.id
+    );
+    
+    // If there's only one article, show it directly
+    if (topicArticles.length === 1) {
+      setCurrentArticle(topicArticles[0]);
+    } else {
+      setSearchResults(topicArticles);
+    }
+  };
+  
+  const handleArticleSelect = (article) => {
+    setCurrentArticle(article);
   };
   
   const handleSearch = (e) => {
     e.preventDefault();
-    if (searchQuery.trim()) {
-      // In a real app, we would search the knowledge base
-      // For the prototype, we'll just show our sample article if the query matches
-      if (searchQuery.toLowerCase().includes('virtue') || 
-          searchQuery.toLowerCase().includes('ethics') ||
-          searchQuery.toLowerCase().includes('aristotle')) {
-        setCurrentArticle(sampleArticle);
-        setSelectedDomain(knowledgeDomains[0]);
-        setSelectedTopic(knowledgeDomains[0].topics[0]);
-      }
-    }
+    
+    if (!searchQuery.trim()) return;
+    
+    setIsSearching(true);
+    setSelectedDomain(null);
+    setSelectedTopic(null);
+    setCurrentArticle(null);
+    
+    // Simple search implementation
+    const query = searchQuery.toLowerCase();
+    const results = knowledgeBase.articles.filter(article => {
+      return (
+        article.title.toLowerCase().includes(query) ||
+        article.content.toLowerCase().includes(query) ||
+        article.tags.some(tag => tag.toLowerCase().includes(query))
+      );
+    });
+    
+    setSearchResults(results);
   };
   
-  const renderMarkdown = (text) => {
-    // A very simple markdown renderer for the prototype
-    const lines = text.split('\n');
-    
-    return lines.map((line, index) => {
-      if (line.startsWith('# ')) {
-        return <h1 key={index} className="text-2xl font-serif font-bold mb-4">{line.substring(2)}</h1>;
-      } else if (line.startsWith('## ')) {
-        return <h2 key={index} className="text-xl font-serif font-semibold mt-6 mb-3">{line.substring(3)}</h2>;
-      } else if (line.startsWith('- **')) {
-        const parts = line.split('**');
-        return (
-          <li key={index} className="mb-2">
-            <strong>{parts[1]}</strong>{parts[2]}
-          </li>
-        );
-      } else if (line.startsWith('1. **')) {
-        const parts = line.split('**');
-        return (
-          <div key={index} className="flex mb-2">
-            <span className="mr-2">{line.charAt(0)}.</span>
-            <div>
-              <strong>{parts[1]}</strong>{parts[2]}
+  const renderArticleContent = () => {
+    return (
+      <div className="prose prose-aegeanBlue max-w-none">
+        <ReactMarkdown
+          components={{
+            h1: ({node, ...props}) => <h1 className="text-2xl font-serif font-bold mb-4" {...props} />,
+            h2: ({node, ...props}) => <h2 className="text-xl font-serif font-semibold mt-6 mb-3" {...props} />,
+            h3: ({node, ...props}) => <h3 className="text-lg font-serif font-semibold mt-5 mb-2" {...props} />,
+            p: ({node, ...props}) => <p className="mb-3" {...props} />,
+            li: ({node, ...props}) => <li className="mb-2 ml-4" {...props} />,
+            strong: ({node, ...props}) => <strong className="font-bold" {...props} />,
+            em: ({node, ...props}) => <em className="italic" {...props} />,
+            a: ({node, ...props}) => <a className="text-aegeanBlue hover:underline" {...props} />,
+            blockquote: ({node, ...props}) => <blockquote className="pl-4 border-l-4 border-aegeanBlue/30 italic" {...props} />,
+            code: ({node, inline, ...props}) => 
+              inline 
+                ? <code className="px-1 py-0.5 bg-aegeanBlue/10 rounded" {...props} />
+                : <code className="block p-4 bg-aegeanBlue/10 rounded overflow-auto" {...props} />,
+          }}
+        >
+          {currentArticle.content}
+        </ReactMarkdown>
+      </div>
+    );
+  };
+  
+  const renderArticlesList = (articles) => {
+    return (
+      <div className="space-y-4 my-4">
+        {articles.map(article => (
+          <Card 
+            key={article.id} 
+            variant="interactive"
+            onClick={() => handleArticleSelect(article)}
+          >
+            <div className="p-4">
+              <h3 className="font-serif font-bold text-aegeanBlue text-lg mb-1">
+                {article.title}
+              </h3>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {article.tags.map(tag => (
+                  <span 
+                    key={tag} 
+                    className="px-2 py-1 text-xs font-medium bg-philosophicalPurple/10 text-philosophicalPurple rounded-full"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
             </div>
-          </div>
-        );
-      } else if (line.trim() === '') {
-        return <div key={index} className="my-2"></div>;
-      } else {
-        return <p key={index} className="mb-3">{line}</p>;
-      }
-    });
+          </Card>
+        ))}
+      </div>
+    );
+  };
+  
+  const renderSearchResults = () => {
+    if (searchResults.length === 0) {
+      return (
+        <div className="text-center py-8">
+          <p className="text-aegeanBlue/60">No results found for "{searchQuery}"</p>
+          <p className="text-sm mt-2">Try different keywords or browse by topic</p>
+        </div>
+      );
+    }
+    
+    return (
+      <div>
+        <h3 className="text-xl font-serif text-aegeanBlue mb-4">
+          Search Results for "{searchQuery}"
+        </h3>
+        {renderArticlesList(searchResults)}
+      </div>
+    );
+  };
+  
+  const renderTopicArticles = () => {
+    if (searchResults.length === 0) {
+      return (
+        <div className="text-center py-8">
+          <p className="text-aegeanBlue/60">No articles found for this topic</p>
+          <p className="text-sm mt-2">Check back later as we continue to add content</p>
+        </div>
+      );
+    }
+    
+    return (
+      <div>
+        <h3 className="text-xl font-serif text-aegeanBlue mb-4">
+          Articles on {selectedTopic.name}
+        </h3>
+        {renderArticlesList(searchResults)}
+      </div>
+    );
   };
   
   return (
@@ -178,7 +197,7 @@ const KnowledgeExplorer = () => {
               Knowledge Domains
             </h3>
             <div className="space-y-2">
-              {knowledgeDomains.map((domain) => (
+              {domains.map((domain) => (
                 <motion.div
                   key={domain.id}
                   whileHover={{ x: 3 }}
@@ -215,6 +234,7 @@ const KnowledgeExplorer = () => {
                     onClick={() => handleTopicSelect(topic)}
                   >
                     {topic.name}
+                    <p className="text-xs text-gray-600">{topic.description}</p>
                   </motion.div>
                 ))}
               </div>
@@ -227,25 +247,36 @@ const KnowledgeExplorer = () => {
           {currentArticle ? (
             <div>
               <div className="mb-6">
-                <h1 className="text-3xl font-serif font-bold text-aegeanBlue mb-2">
-                  {currentArticle.title}
-                </h1>
+                <div className="flex justify-between items-start">
+                  <h1 className="text-3xl font-serif font-bold text-aegeanBlue mb-2">
+                    {currentArticle.title}
+                  </h1>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setCurrentArticle(null)}
+                  >
+                    Back
+                  </Button>
+                </div>
                 <div className="flex flex-wrap gap-2">
-                  {currentArticle.relatedTopics.map((topic) => (
+                  {currentArticle.tags.map((tag) => (
                     <span 
-                      key={topic} 
+                      key={tag} 
                       className="px-2 py-1 text-xs font-medium bg-philosophicalPurple/20 text-philosophicalPurple rounded-full"
                     >
-                      {topic}
+                      {tag}
                     </span>
                   ))}
                 </div>
               </div>
               
-              <div className="prose prose-aegeanBlue max-w-none">
-                {renderMarkdown(currentArticle.content)}
-              </div>
+              {renderArticleContent()}
             </div>
+          ) : isSearching ? (
+            renderSearchResults()
+          ) : selectedTopic ? (
+            renderTopicArticles()
           ) : (
             <div className="h-full flex items-center justify-center">
               <div className="text-center text-aegeanBlue/60 max-w-md">
@@ -267,7 +298,7 @@ const KnowledgeExplorer = () => {
                       Browse domains and topics, or search the knowledge base to explore ancient Greek wisdom.
                     </p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-8">
-                      {knowledgeDomains.map((domain) => (
+                      {domains.map((domain) => (
                         <Card 
                           key={domain.id}
                           variant="interactive"
@@ -275,7 +306,8 @@ const KnowledgeExplorer = () => {
                         >
                           <div className="text-center py-3">
                             <div className="text-3xl mb-2">{domain.icon}</div>
-                            <div>{domain.name}</div>
+                            <div className="font-medium">{domain.name}</div>
+                            <div className="text-xs text-gray-600 mt-1">{domain.description}</div>
                           </div>
                         </Card>
                       ))}

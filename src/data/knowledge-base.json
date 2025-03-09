@@ -1,0 +1,161 @@
+{
+  "domains": [
+    {
+      "id": "philosophy",
+      "name": "Philosophy",
+      "icon": "🧠",
+      "description": "Ancient Greek philosophical traditions, schools of thought, and key concepts",
+      "topics": [
+        {
+          "id": "ethics",
+          "name": "Ethics & Morality",
+          "description": "Theories of virtue, happiness, and right action"
+        },
+        {
+          "id": "metaphysics",
+          "name": "Metaphysics & Reality",
+          "description": "Concepts of being, reality, and the nature of existence"
+        },
+        {
+          "id": "epistemology",
+          "name": "Epistemology & Knowledge",
+          "description": "Theories of knowledge, truth, and understanding"
+        },
+        {
+          "id": "logic",
+          "name": "Logic & Reasoning",
+          "description": "Principles of valid reasoning and argumentation"
+        },
+        {
+          "id": "aesthetics",
+          "name": "Aesthetics & Beauty",
+          "description": "Concepts of beauty, art, and creative expression"
+        }
+      ]
+    },
+    {
+      "id": "history",
+      "name": "History",
+      "icon": "📜",
+      "description": "Key periods, events, and figures in ancient Greek history",
+      "topics": [
+        {
+          "id": "archaic",
+          "name": "Archaic Period",
+          "description": "The early development of Greek civilization (800-480 BCE)"
+        },
+        {
+          "id": "classical",
+          "name": "Classical Period",
+          "description": "The golden age of Greek culture (480-323 BCE)"
+        },
+        {
+          "id": "hellenistic",
+          "name": "Hellenistic Period",
+          "description": "The spread of Greek culture after Alexander (323-31 BCE)"
+        },
+        {
+          "id": "figures",
+          "name": "Historical Figures",
+          "description": "Key personalities who shaped ancient Greek history"
+        },
+        {
+          "id": "events",
+          "name": "Major Events",
+          "description": "Pivotal moments that defined ancient Greek civilization"
+        }
+      ]
+    },
+    {
+      "id": "mythology",
+      "name": "Mythology",
+      "icon": "⚡",
+      "description": "Gods, heroes, creatures, and stories from Greek mythology",
+      "topics": [
+        {
+          "id": "gods",
+          "name": "Olympian Gods",
+          "description": "The major deities of the Greek pantheon"
+        },
+        {
+          "id": "heroes",
+          "name": "Heroes & Legends",
+          "description": "Mortals with extraordinary abilities and their exploits"
+        },
+        {
+          "id": "creatures",
+          "name": "Mythical Creatures",
+          "description": "Beings from Greek mythology beyond gods and mortals"
+        },
+        {
+          "id": "stories",
+          "name": "Myths & Stories",
+          "description": "Important narratives from Greek mythology"
+        },
+        {
+          "id": "symbols",
+          "name": "Symbols & Meanings",
+          "description": "Symbolic elements and their significance in Greek myths"
+        }
+      ]
+    }
+  ],
+  "articles": [
+    {
+      "id": "virtue-ethics",
+      "title": "Virtue Ethics in Ancient Greece",
+      "domainId": "philosophy",
+      "topicId": "ethics",
+      "tags": [
+        "virtue",
+        "aristotle",
+        "ethics",
+        "eudaimonia",
+        "character"
+      ],
+      "content": "# Virtue Ethics in Ancient Greece\n\nVirtue ethics is one of the oldest moral traditions in Western philosophy, with its roots deeply embedded in ancient Greek thought, particularly in the works of Aristotle, though it draws on the ideas of earlier thinkers like Socrates and Plato.\n\n## The Concept of Virtue (Aretē)\n\nThe ancient Greek concept of 'aretē' (often translated as 'virtue' or 'excellence') refers to the qualities that enable something to perform its function well. For humans, aretē means the qualities that enable a person to live a good, flourishing life (eudaimonia).\n\n## Aristotle's Approach\n\nAristotle developed the most comprehensive virtue ethics framework in his work \"Nicomachean Ethics.\" His approach centers on:\n\n1. **The Golden Mean**: Virtues are a mean between two extremes (vices) - excess and deficiency. For example, courage is the mean between rashness (excess) and cowardice (deficiency).\n\n2. **Character Development**: Virtues are not innate but developed through practice and habit. We become virtuous by performing virtuous acts.\n\n3. **Practical Wisdom (Phronesis)**: The intellectual virtue that allows us to determine the right action in any situation.\n\n## Key Virtues in Ancient Greek Ethics\n\n- **Courage (Andreia)**: Facing fear appropriately\n- **Temperance (Sophrosyne)**: Moderation in desires and pleasures\n- **Justice (Dikaiosyne)**: Fair treatment and proportional equality\n- **Wisdom (Sophia)**: Understanding of universal truths\n- **Magnanimity (Megalopsychia)**: Appropriate pride and self-worth\n\n## Modern Relevance\n\nVirtue ethics offers an alternative to rule-based ethical systems by focusing on character development rather than specific actions or outcomes. Many modern philosophers and psychologists have renewed interest in virtue ethics as a foundation for personal development and ethical living."
+    },
+    {
+      "id": "socratic-method",
+      "title": "The Socratic Method: Questioning as Path to Wisdom",
+      "domainId": "philosophy",
+      "topicId": "epistemology",
+      "tags": [
+        "socrates",
+        "dialogue",
+        "questioning",
+        "knowledge",
+        "wisdom"
+      ],
+      "content": "# The Socratic Method: Questioning as Path to Wisdom\n\nThe Socratic Method is a form of cooperative argumentative dialogue between individuals, based on asking and answering questions to stimulate critical thinking and to draw out ideas and underlying presuppositions. It is named after the Classical Greek philosopher Socrates and is an important component of his philosophical legacy.\n\n## Origins and Purpose\n\nSocrates (470-399 BCE) developed this method as a way to examine beliefs, particularly those held by the powerful and respected citizens of Athens. Through persistent questioning, Socrates sought to reveal inconsistencies in thinking and to help others recognize their own ignorance—a first step toward true wisdom.\n\n## Key Features of the Socratic Method\n\n1. **Systemic Questioning**: The method involves asking a series of questions designed to expose contradictions in one's ideas.\n\n2. **Irony**: Socrates often pretended to be ignorant about the subject under discussion, a technique known as \"Socratic irony,\" which encouraged others to express and examine their views.\n\n3. **Elenchos (Refutation)**: Through questioning, Socrates would lead his interlocutors to realize the errors in their reasoning.\n\n4. **Aporia (Puzzlement)**: The dialogue often ends in aporia—a state of puzzlement where participants recognize they don't know what they thought they knew.\n\n## The Path to Knowledge\n\nSocrates famously claimed, \"I know that I know nothing,\" reflecting his belief that acknowledging one's ignorance is the beginning of wisdom. By recognizing what we don't know, we open ourselves to genuine inquiry.\n\n## Modern Applications\n\nToday, the Socratic Method is used in:\n\n- **Education**: Promoting critical thinking and deep understanding rather than rote memorization\n- **Law**: Training lawyers to think critically through the \"case method\"\n- **Psychotherapy**: Helping patients recognize cognitive distortions\n- **Business**: Improving problem-solving and innovation through structured questioning\n\n## The Method in Practice\n\nA Socratic dialogue typically follows this pattern:\n\n1. Begin with a question about a belief\n2. Explore the implications of that belief\n3. Identify contradictions in the reasoning\n4. Refine or replace the original belief\n5. Continue the process with the new belief\n\nThis iterative approach helps participants move toward more coherent and well-founded understandings."
+    },
+    {
+      "id": "classical-athens",
+      "title": "Classical Athens: Democracy's Birthplace",
+      "domainId": "history",
+      "topicId": "classical",
+      "tags": [
+        "athens",
+        "democracy",
+        "golden age",
+        "pericles",
+        "city-state"
+      ],
+      "content": "# Classical Athens: Democracy's Birthplace\n\nClassical Athens, flourishing primarily during the 5th century BCE, represents one of history's most influential civilizations. As the birthplace of democracy and a center of art, philosophy, and drama, Athens left an indelible mark on Western civilization.\n\n## The Rise of Athenian Democracy\n\nAthenian democracy developed gradually:\n\n- **Solon's Reforms (594 BCE)**: Reduced debt slavery and expanded political rights\n- **Cleisthenes' Reforms (508 BCE)**: Established the democratic system based on \"demos\" (people) and \"kratos\" (power)\n- **Pericles' Leadership (461-429 BCE)**: Further democratized the system and led Athens during its Golden Age\n\n## Structure of Athenian Democracy\n\nThe Athenian system included several key institutions:\n\n1. **Ecclesia (Assembly)**: Open to all male citizens, this body made major decisions\n2. **Boule (Council of 500)**: Prepared legislation for the assembly\n3. **Dikasteria (Courts)**: Large jury courts for legal cases\n4. **Strategoi (Generals)**: Elected military leaders who also held political influence\n\n## Limitations of Athenian Democracy\n\nDespite its revolutionary nature, Athenian democracy was limited:\n\n- Only male citizens could participate (excluding women, slaves, and foreign residents)\n- Citizens represented only about 10-20% of the total population\n- The system sometimes fell prey to demagoguery and hasty decisions\n\n## Cultural Achievements\n\nThe democratic environment fostered remarkable cultural achievements:\n\n- **Philosophy**: Home to Socrates, Plato, and many other thinkers\n- **Drama**: Birthplace of tragedy (Aeschylus, Sophocles, Euripides) and comedy (Aristophanes)\n- **Architecture**: The Parthenon and other monuments of the Acropolis\n- **Art**: Innovations in sculpture, pottery, and painting\n\n## The Peloponnesian War and Decline\n\nThe Peloponnesian War (431-404 BCE) between Athens and Sparta ultimately led to Athens' defeat and the beginning of its decline as a dominant power. The war strained resources, caused social upheaval, and temporarily disrupted democratic governance.\n\n## Legacy\n\nDespite its eventual decline, Classical Athens provided models for:\n\n- Democratic governance\n- Civic participation\n- Free speech and debate\n- Rational inquiry\n- Artistic expression\n\nThese values continue to influence modern societies, making Athens' legacy one of the most enduring in human history."
+    },
+    {
+      "id": "plato-forms",
+      "title": "Plato's Theory of Forms",
+      "domainId": "philosophy",
+      "topicId": "metaphysics",
+      "tags": [
+        "plato",
+        "metaphysics",
+        "forms",
+        "reality",
+        "idealism"
+      ],
+      "content": "# Plato's Theory of Forms\n\n*Tags: metaphysics, reality, idealism, epistemology, ontology, platonism, ancient-greek-philosophy*\n\n## Introduction: Reaching Beyond the Shadows\n\nAt the heart of Plato's philosophy lies perhaps his most enduring and influential idea: the Theory of Forms (εἶδος / *eidos* or ἰδέα / *idea*). This revolutionary concept fundamentally transformed how philosophers understood reality, knowledge, and human perception. Developed in the 4th century BCE, this theory emerged from Plato's dissatisfaction with the material explanations offered by his predecessors and was deeply influenced by his mentor Socrates' pursuit of universal definitions.\n\nThe Theory of Forms proposes that the physical world we perceive through our senses is merely a shadowy, imperfect reflection of a higher, more fundamental reality composed of eternal, unchanging ideals called Forms. These Forms represent the perfect, pure essence of everything that exists in our material world. When we see various chairs, for example, they are all imperfect manifestations of the single, perfect Form of \"Chair-ness\" that exists beyond our physical reality.\n\n## The Nature of Forms: Perfect Patterns Beyond the Physical\n\nForms, according to Plato, are not physical objects or mental constructs, but rather transcendent, self-subsisting entities that exist independently of human minds and the physical world. They possess several defining characteristics that set them apart from ordinary objects:\n\n**Eternal and Unchanging**: Unlike physical objects that decay and transform, Forms are permanent and immutable. The Form of Beauty never becomes less beautiful or changes its nature.\n\n**Perfect and Complete**: Each Form represents the ideal, flawless version of its earthly counterparts. The Form of Justice embodies perfect justice in a way no human institution ever could.\n\n**Singular and Unified**: While many physical objects can represent a concept (countless triangles exist), there is only one Form of Triangle that encompasses the essence of triangularity.\n\n**Non-Spatial and Non-Temporal**: Forms do not exist in physical space or time but in what Plato called the \"realm of Forms\" (τόπος νοητός / *topos noetos* - \"intelligible place\").\n\n**Causally Potent**: Forms are not passive templates but active principles that cause physical objects to have the properties they do. A bed is a bed because it \"participates in\" the Form of Bed.\n\n## The Allegory of the Cave: Understanding Our Relationship to Forms\n\nTo help explain how humans relate to Forms, Plato presented his famous Allegory of the Cave (σπήλαιον / *spelaion*) in Book VII of *The Republic*. This powerful metaphor illustrates the difference between appearance and reality, and the transformative journey from ignorance to knowledge.\n\nIn this allegory, prisoners are chained in a cave, facing a blank wall. Behind them, puppeteers cast shadows on the wall using objects and a fire. Having never seen anything else, the prisoners mistake these shadows for reality itself. If freed and forced to turn around, they would be blinded by the fire and confused by the actual objects. Should one prisoner escape the cave entirely, they would be dazzled by the sun and the true world outside, eventually understanding that what they had previously accepted as reality was merely shadows of imitations.\n\nThis allegory parallels our relationship to Forms: most humans live their lives perceiving only the \"shadows\" (physical objects) rather than the \"real objects\" (Forms) that cast those shadows. Philosophers, through rigorous dialectic and rational inquiry, strive to escape the \"cave\" of sensory perception and access knowledge of the Forms themselves.\n\n## Modern Relevance: The Enduring Influence of Platonic Idealism\n\nAlthough developed over two millennia ago, Plato's Theory of Forms continues to resonate in contemporary thought across multiple disciplines:\n\nIn mathematics, the concept that mathematical truths exist independently of human minds (mathematical Platonism) derives directly from Plato's thinking. When mathematicians \"discover\" rather than \"invent\" mathematical relationships, they are working within a Platonic framework.\n\nIn computer science, object-oriented programming employs \"classes\" that function remarkably similarly to Platonic Forms—abstract templates that define the essential properties from which individual instances are derived.\n\nIn cognitive science, prototype theory suggests that humans understand categories through idealized \"best examples\" that share similarities with Platonic Forms.\n\nEven in everyday thinking, we regularly engage with abstract ideals that we never expect to encounter perfectly in reality—concepts like perfect justice, complete equality, or absolute beauty—yet these ideals guide our evaluations and aspirations.\n\n## Conclusion: The Shadows and the Sun\n\nPlato's Theory of Forms invites us to question whether what we perceive is truly all that exists. It challenges us to recognize the limitations of sensory knowledge and to seek deeper understanding through reason and philosophical inquiry. By positing a realm of perfect ideals beyond our immediate experience, Plato provided a framework for understanding how imperfect particulars can be understood in relation to perfect universals.\n\nWhile modern science has largely moved away from Platonic idealism in its strictest form, the core intuition—that there exists some deeper, more fundamental reality beneath the surface of appearances—remains central to human inquiry. In our pursuit of knowledge, whether through philosophy, science, or art, we continue Plato's quest to move beyond the shadows on the cave wall and glimpse, however imperfectly, the brilliant Forms illuminated by the sun of truth.\n\nAs we navigate our increasingly complex world, Plato's theory reminds us to look beyond mere appearances and to seek the underlying patterns, principles, and ideals that give coherence to our experience. Perhaps in this pursuit, we too can ascend from the cave of limited perception toward a more complete understanding of reality itself."
+    }
+  ]
+}

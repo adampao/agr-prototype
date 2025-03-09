@@ -133,3 +133,63 @@
   position: relative;
   z-index: 10;
 }
+
+/* Add this to your global CSS */
+.vis-timeline {
+  border: none !important;
+  font-family: var(--font-sans);
+}
+
+.vis-item {
+  background-color: #1E4B8C;
+  color: white;
+  border-color: #1E4B8C;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  transition: background-color 0.2s ease;
+}
+
+.vis-item:hover {
+  background-color: #C5A572;
+  border-color: #C5A572;
+  cursor: pointer;
+}
+
+.vis-item.vis-selected {
+  background-color: #C5A572;
+  border-color: #C5A572;
+}
+
+.vis-time-axis .vis-text {
+  color: #614B79;
+  font-weight: 500;
+}
+
+.vis-panel.vis-center,
+.vis-panel.vis-left,
+.vis-panel.vis-right {
+  border-color: rgba(30, 75, 140, 0.1);
+}
+
+.vis-timeline:focus {
+  outline: none;
+}
+
+/* Ensure the timeline container fills available space */
+.timeline-container {
+  width: 100%;
+  height: 100%;
+}
+
+/* For the details panel */
+.timeline-details {
+  background-color: #F5F4F0;
+  border-top: 1px solid rgba(30, 75, 140, 0.2);
+  padding: 1rem;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}

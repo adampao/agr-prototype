@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Layout from '../components/layout/Layout';
 import PhilosopherChat from '../components/study/PhilosopherChat';
 import KnowledgeExplorer from '../components/study/KnowledgeExplorer';
+import TimelineViewer from '../components/study/TimelineViewer';
 import Button from '../components/common/Button';
 
 const StudyPage = () => {
@@ -27,14 +28,22 @@ const StudyPage = () => {
             >
               Knowledge Explorer
             </Button>
+            <Button 
+              variant={activeTab === 'timeline' ? 'primary' : 'outline'} 
+              onClick={() => setActiveTab('timeline')}
+            >
+              Timeline
+            </Button>
           </div>
         </div>
         
         <div className="bg-white rounded-lg shadow-md border border-aegeanBlue/10 min-h-[600px]">
           {activeTab === 'philosophers' ? (
             <PhilosopherChat />
-          ) : (
+          ) : activeTab === 'knowledge' ? (
             <KnowledgeExplorer />
+          ) : (
+            <TimelineViewer />
           )}
         </div>
       </div>
